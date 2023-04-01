@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Sales Tracker Page</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	{% from 'bootstrap5/form.html' import render_form %}
 </head>
 <body>
 <div class="container">
@@ -35,7 +36,19 @@
 				</div>
 			</div>
 			<div id="sales_form" class="p-2 mb-4 bg-light rounded-3">
-				<p>FORM TO INPUT SALES</p>
+				{{ render_form(sales_form) }}
+<!--				<form method="POST">-->
+<!--					{{ sales_form.username.label }} {{ sales_form.username(id='username_field') }}-->
+<!--					{{ sales_form.new_up.label }} {{ sales_form.new_up(id='new_up_radio') }}-->
+<!--					{{ sales_form.sale_type.label }} {{ sales_form.sale_type(id='sale_drop') }}-->
+<!--					{{ sales_form.device_name.label }} {{ sales_form.device_name(id='device_field') }}-->
+<!--					{{ sales_form.data_amount.label }} {{ sales_form.data_amount(id='data_drop') }}-->
+<!--					{{ sales_form.price.label }} {{ sales_form.price(id='price_drop') }}-->
+<!--					{{ sales_form.discount.label }} {{ sales_form.discount(id='discount_int') }}-->
+<!--					{{ sales_form.insurance.label }} {{ sales_form.insurance(id='insurance_drop') }}-->
+<!--					{{ sales_form.broadband.label }} {{ sales_form.broadband(id='broadband_drop') }}-->
+<!--					{{ sales_form.submit() }}-->
+<!--				</form>-->
 			</div>
 			<div id="sales_list" class="p-2 mb-4 bg-light rounded-3">
 				<p>LIST OF ALL SALES IN DATABASE</p>
