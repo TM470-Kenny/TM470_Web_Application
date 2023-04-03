@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap5
 
-from forms import SalesForm, ProductsForm
+from forms import SalesForm, ProductsForm, HoursForm, TargetForm, LoginForm, UsersForm
 
 import os
 from flask_sqlalchemy import SQLAlchemy
@@ -110,13 +110,15 @@ bootstrap = Bootstrap5(app)
 # basic route for login page - linking to html file
 @app.route('/')
 def login():
-    return render_template("login.html")
+    login_form = LoginForm()
+    return render_template("login.html", login_form=login_form)
 
 
 # route for users page
 @app.route('/users/')
 def users():
-    return render_template("users.html")
+    users_form = UsersForm()
+    return render_template("users.html", users_form=users_form)
 
 
 # route for database page
@@ -142,7 +144,9 @@ def database():
 # route for targets page
 @app.route('/targets/')
 def targets():
-    return render_template("targets.html")
+    target_form = TargetForm()
+    hours_form = HoursForm()
+    return render_template("targets.html", hours_form=hours_form, target_form=target_form)
 
 
 # route for sales tracker page

@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Users Page</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	{% from 'bootstrap5/form.html' import render_form %}
 </head>
 <body>
 <div class="container">
@@ -33,6 +34,13 @@
                         <a class="btn btn-lg btn-success" href="/sales/" role="button">Sales Tracker</a>
 					</p>
 				</div>
+			</div>
+			<div id="users_form" class="p-2 mb-4 bg-light rounded-3">
+				<p>FORM TO INPUT USERS INTO DATABASE</p>
+				{{ render_form(users_form) }}
+			</div>
+			<div id="users_list" class="p-2 mb-4 bg-light rounded-3">
+				<p>LIST OF ALL USERS</p>
 			</div>
 			<footer class="footer">
 
