@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, RadioField, IntegerField, DecimalField
-from wtforms.validators import DataRequired, NumberRange
+from wtforms import StringField, SubmitField, SelectField, RadioField, IntegerField, DecimalField, PasswordField
+from wtforms.validators import DataRequired, NumberRange, InputRequired, Email
 
 
 # form design for sales tracker form
@@ -28,9 +28,40 @@ class SalesForm(FlaskForm):
 class ProductsForm(FlaskForm):
     device_name = StringField('Device Name:')
     data_amount = IntegerField('Data Amount:')
-    contract_length = SelectField('Contract Length:', choices=[12, 24, 36])
+    contract_length = SelectField('Contract Length:', choices=['', 12, 24, 36])
     price = DecimalField('Price:')
     revenue = DecimalField('Revenue:')
     commission = DecimalField('Commission:')
     submit = SubmitField('Submit')
+
+
+class UsersForm(FlaskForm):
+    firstname = StringField('First name:', validators=[InputRequired()])
+    lastname = StringField('Last name:', validators=[InputRequired()])
+    email = StringField('Email:', validators=[Email()])
+    submit = SubmitField('Submit')
+
+
+class TargetForm(FlaskForm):
+    new = IntegerField('New:')
+    upgrades = IntegerField('Upgrades:')
+    broadband = IntegerField('Broadband:')
+    unlimited = IntegerField('Unlimited:')
+    insurance = IntegerField('Insurance:')
+    revenue = IntegerField('Revenue:')
+    submit = SubmitField('Submit')
+
+
+class HoursForm(FlaskForm):
+    username = StringField('Username:')
+    hours = IntegerField('Hours:')
+    submit = SubmitField('Submit')
+
+
+class LoginForm(FlaskForm):
+    username = StringField('Username:', validators=[InputRequired()])
+    password = PasswordField('Password:', validators=[InputRequired()])
+    submit = SubmitField('Submit')
+
+
 
