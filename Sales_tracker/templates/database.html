@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Database Page</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	{% from 'bootstrap5/form.html' import render_form %}
 </head>
 <body>
 <div class="container">
@@ -36,11 +37,15 @@
             </div>
 			<div id="products_form" class="p-2 mb-4 bg-light rounded-3">
 				<p>FORM TO INPUT PRODUCTS INTO DATABASE</p>
+				{{ render_form(products_form) }}
 			</div>
 			<div id="sales_list" class="p-2 mb-4 bg-light rounded-3">
-			{% for products in products %}
-        		<h2>{{ products['device'] }}</h2>
-    		{% endfor %}
+				<p>LIST OF ALL PRODUCTS AVAILABLE</p>
+				<ul>
+				{% for all_products in all_products %}
+        		<li>{{ all_products['device'] }} || {{ all_products['data'] }} || {{ all_products['price'] }}</li>
+    			{% endfor %}
+				</ul>
 			</div>
 			<footer class="footer">
 
