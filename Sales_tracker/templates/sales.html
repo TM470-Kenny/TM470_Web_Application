@@ -52,6 +52,9 @@
 			</div>
 			<div id="sales_list" class="p-2 mb-4 bg-light rounded-3">
 				<p>LIST OF ALL SALES IN DATABASE</p>
+				{% for all_sales in all_sales %}
+        		<h2>{{ all_sales['device'] }} || {{ all_sales['new'] }} || {{ all_sales['price'] }}</h2>
+    			{% endfor %}
 			</div>
 			<footer class="footer">
 

@@ -4,13 +4,22 @@ from wtforms import StringField, SubmitField, SelectField, RadioField, IntegerFi
 from wtforms.validators import DataRequired, NumberRange
 from flask_bootstrap import Bootstrap5
 
+import sqlite3
+
+
 # instantiate the Flask object
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hard to guess string'
 
-# instntiate bootstrap to be used with form
-bootstrap = Bootstrap5(app)
+# create connection to the database
+def connect_db():
+    conn = sqlite3.connect('sales_tracker.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
+
+# instantiate bootstrap to be used with form
+bootstrap = Bootstrap5(app)
 
 # form design for sales tracker form
 class SalesForm(FlaskForm):
@@ -21,6 +30,7 @@ class SalesForm(FlaskForm):
     # visible upon choosing device
     device_name = StringField('Device Name:')
     data_amount = SelectField('Data Amount:', choices=['1GB', '5GB', '100GB', 'Unlimited'])
+    contract_length = SelectField('Contract Length:', choices=['1m', '12m', '24m'])
     # price dependent on data and device selected
     price = SelectField('Price:', choices=['£10.00', '£14.00', '£20.00', '£35.00'])
     discount = IntegerField('Discount:', validators=[NumberRange(min=0, max=100)])
@@ -47,7 +57,11 @@ def users():
 # route for database page
 @app.route('/database/')
 def database():
-    return render_template("database.html")
+    # connect to database and read all elements for products table
+    conn = connect_db()
+    products = conn.execute('SELECT * FROM products').fetchall()
+    conn.close()
+    return render_template("database.html", products=products)
 
 
 # route for targets page
@@ -60,8 +74,13 @@ def targets():
 @app.route('/sales/', methods=['GET', 'POST'])
 def sales():
     sales_form = SalesForm()
-    return render_template("sales.html", sales_form=sales_form)
+    # connect to database and read all elements for sales table
+    conn = connect_db()
+    all_sales = conn.execute('SELECT * FROM sales').fetchall()
+    conn.close()
+    return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
 
 
 if __name__ == '__main__':
     app.run()
+
