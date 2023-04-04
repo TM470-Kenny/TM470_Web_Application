@@ -45,6 +45,46 @@
 			</div>
 			<div id="targets_list" class="p-2 mb-4 bg-light rounded-3">
 				<p>LIST OF ALL TARGETS</p>
+				<table id="data" class="table table-striped">
+					<thead>
+					  <tr>
+						<th>ID</th>
+						<th>User</th>
+						<th>New</th>
+						<th>Upgrades</th>
+						<th>Broadband</th>
+						<th>Unlimited</th>
+						<th>Insurance</th>
+						<th>Revenue</th>
+					  </tr>
+					</thead>
+					<tbody>
+					  {% for store_target in store_targets %}
+						<tr>
+						  <td>{{ store_target.id }}</td>
+						  <td>Store</td>
+						  <td>{{ store_target.new }}</td>
+						  <td>{{ store_target.upgrades }}</td>
+						  <td>{{ store_target.broadband }}</td>
+						  <td>{{ store_target.unlimited }}</td>
+						  <td>{{ store_target.insurance }}</td>
+						  <td>£{{ store_target.revenue|round(2) }}</td>
+						</tr>
+					  {% endfor %}
+						{% for target in user_targets %}
+						<tr>
+						  <td>{{ target.store_id }}</td>
+						  <td>{{ target.username }}</td>
+						  <td>{{ target.new }}</td>
+						  <td>{{ target.upgrades }}</td>
+						  <td>{{ target.broadband }}</td>
+						  <td>{{ target.unlimited }}</td>
+						  <td>{{ target.insurance }}</td>
+						  <td>£{{ target.revenue|round(2) }}</td>
+						</tr>
+					  {% endfor %}
+					</tbody>
+			  	</table>
 			</div>
 			<footer class="footer">
 
