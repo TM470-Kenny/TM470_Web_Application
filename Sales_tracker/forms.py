@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, RadioField, IntegerField, DecimalField, PasswordField
+from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField
 from wtforms.validators import DataRequired, NumberRange, InputRequired, Email
 
 
@@ -7,7 +7,7 @@ from wtforms.validators import DataRequired, NumberRange, InputRequired, Email
 class SalesForm(FlaskForm):
     # set as current logged in user - admin can change
     username = StringField('Username:', validators=[DataRequired()])
-    new_up = RadioField('New or Upgrade:', choices=['New', 'Upgrade'])
+    new_up = BooleanField('New?')
     sale_type = SelectField('Sale Type:', choices=['Device', 'Sim', 'Broadband'])
     # visible upon choosing device
     device_name = StringField('Device Name:')
@@ -39,6 +39,8 @@ class UsersForm(FlaskForm):
     firstname = StringField('First name:', validators=[InputRequired()])
     lastname = StringField('Last name:', validators=[InputRequired()])
     email = StringField('Email:', validators=[Email()])
+    admin = BooleanField('Admin?')
+    store_id = SelectField('Store ID:', choices=['', 1])
     submit = SubmitField('Submit')
 
 

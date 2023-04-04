@@ -41,11 +41,30 @@
 			</div>
 			<div id="products_list" class="p-2 mb-4 bg-light rounded-3">
 				<p>LIST OF ALL PRODUCTS AVAILABLE</p>
-				<ul>
-				{% for all_products in all_products %}
-        		<li>{{ all_products['device'] }} || {{ all_products['data'] }} || {{ all_products['price'] }}</li>
-    			{% endfor %}
-				</ul>
+				<table id="data" class="table table-striped">
+					<thead>
+					  <tr>
+						<th>Device</th>
+						<th>Data</th>
+						<th>Contract length</th>
+						<th>Price</th>
+						<th>Revenue</th>
+						<th>Commission</th>
+					  </tr>
+					</thead>
+					<tbody>
+					  {% for product in all_products %}
+						<tr>
+						  <td>{{ product.device }}</td>
+						  <td>{{ product.data }}GB</td>
+						  <td>{{ product.length }} months</td>
+						  <td>£{{ product.price|round(2) }}</td>
+						  <td>£{{ product.revenue|round(2) }}</td>
+						  <td>£{{ product.commission|round(2) }}</td>
+						</tr>
+					  {% endfor %}
+					</tbody>
+			  	</table>
 			</div>
 			<footer class="footer">
 

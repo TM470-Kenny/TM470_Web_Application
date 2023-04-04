@@ -39,6 +39,38 @@
 				{{ render_form(sales_form) }}
 			<div id="sales_list" class="p-2 mb-4 bg-light rounded-3">
 				<p>LIST OF ALL SALES IN DATABASE</p>
+				<table id="data" class="table table-striped">
+					<thead>
+					  <tr>
+						<th>Username</th>
+						<th>New</th>
+						<th>Device</th>
+						<th>Data</th>
+						<th>Contract Length</th>
+						<th>Price</th>
+						<th>Revenue</th>
+						<th>Commission</th>
+						<th>Discount</th>
+						<th>Insurance</th>
+					  </tr>
+					</thead>
+					<tbody>
+					  {% for sale in all_sales %}
+						<tr>
+						  <td>{{ sale.users.username }}</td>
+						  <td>{{ sale.new }}</td>
+						  <td>{{ sale.product.device }}</td>
+						  <td>{{ sale.product.data }}GB</td>
+						  <td>{{ sale.product.length }} months</td>
+						  <td>£{{ sale.product.price|round(2) }}</td>
+						  <td>£{{ sale.product.revenue|round(2) }}</td>
+						  <td>£{{ sale.product.commission|round(2) }}</td>
+						  <td>{{ sale.discount }}</td>
+						  <td>{{ sale.insurance }}</td>
+						</tr>
+					  {% endfor %}
+					</tbody>
+			  	</table>
 			</div>
 			<footer class="footer">
 

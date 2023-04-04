@@ -39,7 +39,7 @@ class Products(db.Model):
     # Set up One to Many relationship
     product_sales = db.relationship('Sales', backref='product', lazy='dynamic')
 
-    def __init__(self,device,data,length,price,revenue,commission):
+    def __init__(self, device, data, length, price, revenue, commission):
         self.device = device
         self.data = data
         self.length = length
@@ -49,10 +49,6 @@ class Products(db.Model):
 
     def __repr__(self):
         return f'{self.device} with {self.data} costs {self.price}'
-
-    def report_sales(self):
-        for sale in self.product_sales:
-            print(sale)
 
 
 class Sales(db.Model):
@@ -66,7 +62,7 @@ class Sales(db.Model):
     discount = db.Column(db.Integer)
     insurance = db.Column(db.Boolean)
 
-    def __init__(self,user,new,product_id,discount,insurance):
+    def __init__(self, user, new, product_id, discount, insurance):
         self.user = user
         self.new = new
         self.product_id = product_id
@@ -85,18 +81,77 @@ class Users(db.Model):
     firstname = db.Column(db.Text)
     lastname = db.Column(db.Text)
     password = db.Column(db.Text)
+    admin = db.Column(db.Boolean)
+    store_id = db.Column(db.Integer)
 
     user_sales = db.relationship('Sales', backref='users', lazy='dynamic')
 
-    def __init__(self,username,firstname,lastname,password):
+    def __init__(self,username,firstname,lastname,password,admin,store_id):
         self.username = username
         self.firstname = firstname
         self.lastname = lastname
         self.password = password
+        self.admin = admin
+        self.store_id = store_id
 
     def __repr__(self):
         return f'{self.firstname} {self.lastname} has username: {self.username}'
 
+
+class StoreTargets(db.Model):
+
+    __tablename__ = 'store_targets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    new = db.Column(db.Integer)
+    upgrades = db.Column(db.Integer)
+    broadband = db.Column(db.Integer)
+    unlimited = db.Column(db.Integer)
+    insurance = db.Column(db.Integer)
+    revenue = db.Column(db.Numeric)
+
+    ind_targets = db.relationship('Targets', backref='store_targets', lazy='dynamic')
+
+    def __init__(self, new, upgrades, broadband, unlimited, insurance, revenue):
+        self.new = new
+        self.upgrades = upgrades
+        self.broadband = broadband
+        self.unlimited = unlimited
+        self.insurance = insurance
+        self.revenue = revenue
+
+    def __repr__(self):
+        return f'Store {self.id} has target new:{self.new}, upgrades: {self.upgrades}, broadband: {self.broadband}' \
+               f', unlimited: {self.unlimited}, insurance: {self.insurance}, revenue: {self.revenue}'
+
+
+class Targets(db.Model):
+
+    __tablename__ = 'targets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    store_id = db.Column(db.Integer, db.ForeignKey('store_targets.id'))
+    username = db.Column(db.Integer)
+    new = db.Column(db.Integer)
+    upgrades = db.Column(db.Integer)
+    broadband = db.Column(db.Integer)
+    unlimited = db.Column(db.Integer)
+    insurance = db.Column(db.Integer)
+    revenue = db.Column(db.Numeric)
+
+    def __init__(self, store_id, username, new, upgrades, broadband, unlimited, insurance, revenue):
+        self.store_id = store_id
+        self.username = username
+        self.new = new
+        self.upgrades = upgrades
+        self.broadband = broadband
+        self.unlimited = unlimited
+        self.insurance = insurance
+        self.revenue = revenue
+
+    def __repr__(self):
+        return f'User {self.username} has target new:{self.new}, upgrades: {self.upgrades}, broadband: {self.broadband}' \
+               f', unlimited: {self.unlimited}, insurance: {self.insurance}, revenue: {self.revenue}'
 
 
 ######################################
@@ -118,7 +173,8 @@ def login():
 @app.route('/users/')
 def users():
     users_form = UsersForm()
-    return render_template("users.html", users_form=users_form)
+    all_users = Users.query.all()
+    return render_template("users.html", users_form=users_form, all_users=all_users)
 
 
 # route for database page
@@ -146,14 +202,19 @@ def database():
 def targets():
     target_form = TargetForm()
     hours_form = HoursForm()
-    return render_template("targets.html", hours_form=hours_form, target_form=target_form)
+    store_targets = StoreTargets.query.all()
+    user_targets = Targets.query.all()
+    return render_template("targets.html", hours_form=hours_form, target_form=target_form, store_targets=store_targets,
+                           user_targets=user_targets)
 
 
 # route for sales tracker page
 @app.route('/sales/', methods=['GET', 'POST'])
 def sales():
     sales_form = SalesForm()
-    return render_template("sales.html", sales_form=sales_form)
+    all_sales = Sales.query.all()
+    all_products = Products.query.all()
+    return render_template("sales.html", sales_form=sales_form, all_sales=all_sales, all_products=all_products)
 
 
 if __name__ == '__main__':
