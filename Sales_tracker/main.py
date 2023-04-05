@@ -31,11 +31,11 @@ class Products(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     device = db.Column(db.Text)
-    data = db.Column(db.Integer)
-    length = db.Column(db.Integer)
-    price = db.Column(db.Numeric)
-    revenue = db.Column(db.Numeric)
-    commission = db.Column(db.Numeric)
+    data = db.Column(db.Integer, nullable=False)
+    length = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Numeric, nullable=False)
+    revenue = db.Column(db.Numeric, nullable=False)
+    commission = db.Column(db.Numeric, nullable=False)
     # Set up One to Many relationship
     product_sales = db.relationship('Sales', backref='product', lazy='dynamic')
 
@@ -56,11 +56,11 @@ class Sales(db.Model):
     __tablename__ = 'sales'
 
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.Integer, db.ForeignKey('users.id'))
-    new = db.Column(db.Boolean)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    user = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    new = db.Column(db.Boolean, nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     discount = db.Column(db.Integer)
-    insurance = db.Column(db.Boolean)
+    insurance = db.Column(db.Text)
 
     def __init__(self, user, new, product_id, discount, insurance):
         self.user = user
@@ -77,22 +77,28 @@ class Users(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.Text)
-    firstname = db.Column(db.Text)
-    lastname = db.Column(db.Text)
-    password = db.Column(db.Text)
-    admin = db.Column(db.Boolean)
+    username = db.Column(db.Text, nullable=False, unique=True)
+    firstname = db.Column(db.Text, nullable=False)
+    lastname = db.Column(db.Text, nullable=False)
+    password = db.Column(db.Text, nullable=False)
+    email = db.Column(db.Text, nullable=False, unique=True)
+    admin = db.Column(db.Boolean, nullable=False)
     store_id = db.Column(db.Integer)
+    hours_working = db.Column(db.Integer)
 
     user_sales = db.relationship('Sales', backref='users', lazy='dynamic')
+    # One to One relationship for user and target
+    user_targets = db.relationship('Targets', backref='user_target', uselist=False)
 
-    def __init__(self,username,firstname,lastname,password,admin,store_id):
+    def __init__(self, username, firstname, lastname, password, email, admin, store_id, hours):
         self.username = username
         self.firstname = firstname
         self.lastname = lastname
         self.password = password
+        self.email = email
         self.admin = admin
         self.store_id = store_id
+        self.hours_working = hours
 
     def __repr__(self):
         return f'{self.firstname} {self.lastname} has username: {self.username}'
@@ -103,12 +109,12 @@ class StoreTargets(db.Model):
     __tablename__ = 'store_targets'
 
     id = db.Column(db.Integer, primary_key=True)
-    new = db.Column(db.Integer)
-    upgrades = db.Column(db.Integer)
-    broadband = db.Column(db.Integer)
-    unlimited = db.Column(db.Integer)
-    insurance = db.Column(db.Integer)
-    revenue = db.Column(db.Numeric)
+    new = db.Column(db.Integer, nullable=False)
+    upgrades = db.Column(db.Integer, nullable=False)
+    broadband = db.Column(db.Integer, nullable=False)
+    unlimited = db.Column(db.Integer, nullable=False)
+    insurance = db.Column(db.Integer, nullable=False)
+    revenue = db.Column(db.Numeric, nullable=False)
 
     ind_targets = db.relationship('Targets', backref='store_targets', lazy='dynamic')
 
@@ -130,14 +136,14 @@ class Targets(db.Model):
     __tablename__ = 'targets'
 
     id = db.Column(db.Integer, primary_key=True)
-    store_id = db.Column(db.Integer, db.ForeignKey('store_targets.id'))
-    username = db.Column(db.Integer)
-    new = db.Column(db.Integer)
-    upgrades = db.Column(db.Integer)
-    broadband = db.Column(db.Integer)
-    unlimited = db.Column(db.Integer)
-    insurance = db.Column(db.Integer)
-    revenue = db.Column(db.Numeric)
+    store_id = db.Column(db.Integer, db.ForeignKey('store_targets.id'), nullable=False)
+    username = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
+    new = db.Column(db.Integer, nullable=False)
+    upgrades = db.Column(db.Integer, nullable=False)
+    broadband = db.Column(db.Integer, nullable=False)
+    unlimited = db.Column(db.Integer, nullable=False)
+    insurance = db.Column(db.Integer, nullable=False)
+    revenue = db.Column(db.Numeric, nullable=False)
 
     def __init__(self, store_id, username, new, upgrades, broadband, unlimited, insurance, revenue):
         self.store_id = store_id
@@ -160,8 +166,6 @@ class Targets(db.Model):
 bootstrap = Bootstrap5(app)
 
 
-
-
 # basic route for login page - linking to html file
 @app.route('/')
 def login():
@@ -170,10 +174,35 @@ def login():
 
 
 # route for users page
-@app.route('/users/')
+@app.route('/users/', methods=['GET', 'POST'])
 def users():
     users_form = UsersForm()
     all_users = Users.query.all()
+    if users_form.validate_on_submit():
+        firstname = users_form.firstname.data
+        lastname = users_form.lastname.data
+        email = users_form.email.data
+        admin = users_form.admin.data
+        store_id = users_form.store_id.data
+
+        # generate username from firstname and lastname
+        username = firstname+lastname[0]
+        # checks if username exists, adds 1 to end until unique
+        unique = False
+        add = 0
+        while not unique:
+            if Users.query.filter_by(username=username).first():
+                add = add + 1
+                username = firstname+lastname[0] + str(add)
+            else:
+                unique = True
+
+        # ADD LOGIC TO GENERATE FIRST USE PASSWORD
+        # new user created - hours initially set to 0
+        new_user = Users(username, firstname, lastname, "password", email, admin, store_id, 0)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for("users"))
     return render_template("users.html", users_form=users_form, all_users=all_users)
 
 
@@ -198,12 +227,37 @@ def database():
 
 
 # route for targets page
-@app.route('/targets/')
+@app.route('/targets/', methods=['GET', 'POST'])
 def targets():
     target_form = TargetForm()
     hours_form = HoursForm()
     store_targets = StoreTargets.query.all()
     user_targets = Targets.query.all()
+    if target_form.validate_on_submit():
+        # EDIT EXISTING STORE TARGET BASED ON ADMIN LOGIN STORE ID
+        # CURRENTLY ONLY ABLE TO ADD NEW TARGET WITH NEW STORE ID
+        new = target_form.new.data
+        upgrades = target_form.upgrades.data
+        broadband = target_form.broadband.data
+        unlimited = target_form.unlimited.data
+        insurance = target_form.new.data
+        revenue = target_form.revenue.data
+
+        new_target = StoreTargets(new, upgrades, broadband, unlimited, insurance, revenue)
+        db.session.add(new_target)
+        db.session.commit()
+        return redirect(url_for("targets"))
+    if hours_form.validate_on_submit():
+        username = hours_form.username.data
+
+        # find the user if in users table from username input in form
+        user = Users.query.filter_by(username=username).first().id
+
+        # NEED TO EDIT EXISTING USER - UPDATE THE SELECTED USERS NUM HOURS INPUT
+        # user_hours = Users()
+        # db.session.add(user_hours)
+        # db.session.commit()
+        return redirect(url_for("targets"))
     return render_template("targets.html", hours_form=hours_form, target_form=target_form, store_targets=store_targets,
                            user_targets=user_targets)
 
@@ -213,8 +267,30 @@ def targets():
 def sales():
     sales_form = SalesForm()
     all_sales = Sales.query.all()
-    all_products = Products.query.all()
-    return render_template("sales.html", sales_form=sales_form, all_sales=all_sales, all_products=all_products)
+    if sales_form.validate_on_submit():
+        username = sales_form.username.data
+        new = sales_form.new_up.data
+        sale_type = sales_form.sale_type.data
+        device = sales_form.device_name.data
+        data = sales_form.data_amount.data
+        length = sales_form.contract_length.data
+        price = sales_form.price.data
+        discount = sales_form.discount.data
+        insurance = sales_form.insurance.data
+        broadband = sales_form.broadband.data
+
+        # find the product id in products table from details input in form
+        product_id = Products.query.filter(db.and_(Products.device == device, Products.data == data,
+                                                   Products.length == length, Products.price == price)).first().id
+
+        # find the user if in users table from username input in form
+        user = Users.query.filter_by(username=username).first().id
+
+        new_sale = Sales(user, new, product_id, discount, insurance)
+        db.session.add(new_sale)
+        db.session.commit()
+        return redirect(url_for("sales"))
+    return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
 
 
 if __name__ == '__main__':

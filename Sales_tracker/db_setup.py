@@ -6,8 +6,8 @@ db.create_all()
 iphone = Products('iPhone 13', 20, 24, 59.99, 600, 3)
 samsung = Products('Samsung A53', 100, 24, 25.00, 350, 2)
 
-user1 = Users("kennyh", "Kenny", "Harvey", "Password", True, 1)
-user2 = Users("alonal", "Alona", "Lonsdale", "Password1", False, 1)
+user1 = Users("kennyh", "Kenny", "Harvey", "Password", "kenny@gmail.com", True, 1, 0)
+user2 = Users("alonal", "Alona", "Lonsdale", "Password1", "alona@gmail.com", False, 1, 0)
 
 db.session.add_all([iphone, samsung, user2, user1])
 
@@ -25,6 +25,6 @@ store_target = StoreTargets(50, 80, 9, 25, 12, 5850)
 db.session.add(store_target)
 db.session.commit()
 
-user1_target = Targets(store_target.id, user1.username, 10, 15, 2, 5, 2, 1000)
+user1_target = Targets(store_target.id, user1.id, 10, 15, 2, 5, 2, 1000)
 db.session.add(user1_target)
 db.session.commit()
