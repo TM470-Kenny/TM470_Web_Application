@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField
+from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField, ValidationError
 from wtforms.validators import DataRequired, NumberRange, InputRequired, Email
 
 
@@ -11,10 +11,10 @@ class SalesForm(FlaskForm):
     sale_type = SelectField('Sale Type:', choices=['Device', 'Sim', 'Broadband'])
     # visible upon choosing device
     device_name = StringField('Device Name:')
-    data_amount = SelectField('Data Amount:', choices=['1GB', '5GB', '100GB', 'Unlimited'])
-    contract_length = SelectField('Contract Length:', choices=['1m', '12m', '24m'])
+    data_amount = SelectField('Data Amount:', choices=[1, 20, 100, 9999])
+    contract_length = SelectField('Contract Length:', choices=[12, 24, 36])
     # price dependent on data and device selected
-    price = SelectField('Price:', choices=['£10.00', '£14.00', '£20.00', '£35.00'])
+    price = SelectField('Price:', choices=[25.00, 59.99, 65.00, 12.00])
     discount = IntegerField('Discount:', validators=[NumberRange(min=0, max=100)])
     # visible upon choosing device
     insurance = SelectField('Insurance:', choices=['None', 'Tier 1 Damage', 'Tier 1 Full', 'Tier 2 Damage'
@@ -56,14 +56,14 @@ class TargetForm(FlaskForm):
 
 class HoursForm(FlaskForm):
     username = StringField('Username:')
-    hours = IntegerField('Hours:')
+    hours = IntegerField('Hours working:')
     submit = SubmitField('Submit')
 
 
 class LoginForm(FlaskForm):
     username = StringField('Username:', validators=[InputRequired()])
     password = PasswordField('Password:', validators=[InputRequired()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Log In')
 
 
 
