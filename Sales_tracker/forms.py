@@ -1,20 +1,24 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField, ValidationError
+from wtforms_sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, NumberRange, InputRequired, Email
+
+from models.products import Products
+from models.users import Users
 
 
 # form design for sales tracker form
 class SalesForm(FlaskForm):
     # set as current logged in user - admin can change
-    username = StringField('Username:', validators=[DataRequired()])
+    username = QuerySelectField('Username:', query_factory=lambda: Users.query, get_label="username", allow_blank=True, validators=[DataRequired()])
     new_up = BooleanField('New?')
     sale_type = SelectField('Sale Type:', choices=['Device', 'Sim', 'Broadband'])
     # visible upon choosing device
-    device_name = StringField('Device Name:')
-    data_amount = SelectField('Data Amount:', choices=[1, 20, 100, 9999])
-    contract_length = SelectField('Contract Length:', choices=[12, 24, 36])
+    device_name = QuerySelectField('Device Name:', query_factory=lambda: Products.query, get_label="device", allow_blank=True, validators=[DataRequired()])
+    data_amount = QuerySelectField('Data Amount:', query_factory=lambda: Products.query, get_label="data", allow_blank=True, validators=[DataRequired()])
+    contract_length = QuerySelectField('Contract Length:', query_factory=lambda: Products.query, get_label="length", allow_blank=True, validators=[DataRequired()])
     # price dependent on data and device selected
-    price = SelectField('Price:', choices=[25.00, 59.99, 65.00, 12.00])
+    price = QuerySelectField('Price:', query_factory=lambda: Products.query, get_label="price", allow_blank=True, validators=[DataRequired()])
     discount = IntegerField('Discount:', validators=[NumberRange(min=0, max=100)])
     # visible upon choosing device
     insurance = SelectField('Insurance:', choices=['None', 'Tier 1 Damage', 'Tier 1 Full', 'Tier 2 Damage'

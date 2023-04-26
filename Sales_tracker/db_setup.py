@@ -1,5 +1,12 @@
-from main import db, Products, Users, Sales, app, StoreTargets, Targets
+from main import app
+from db import db
+from models.products import Products
+from models.targets import StoreTargets, Targets
+from models.users import Users
+from models.sales import Sales
+
 app.app_context().push()
+db.init_app(app)
 # creates all tables from models
 db.create_all()
 
