@@ -1,12 +1,13 @@
 from flask import Flask, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap5
-
+from db import db
 from forms import SalesForm, ProductsForm, HoursForm, TargetForm, LoginForm, UsersForm
-
 import os
-from flask_sqlalchemy import SQLAlchemy
 
-
+from models.products import Products
+from models.sales import Sales
+from models.targets import StoreTargets, Targets
+from models.users import Users
 
 # instantiate the Flask object
 app = Flask(__name__)
@@ -20,147 +21,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # set up database location
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir, 'sales_tracker.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
-
-db = SQLAlchemy(app)
-
-
-#####################################
-class Products(db.Model):
-
-    __tablename__ = 'products'
-
-    id = db.Column(db.Integer, primary_key=True)
-    device = db.Column(db.Text)
-    data = db.Column(db.Integer, nullable=False)
-    length = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Numeric, nullable=False)
-    revenue = db.Column(db.Numeric, nullable=False)
-    commission = db.Column(db.Numeric, nullable=False)
-    # Set up One to Many relationship
-    product_sales = db.relationship('Sales', backref='product', lazy='dynamic')
-
-    def __init__(self, device, data, length, price, revenue, commission):
-        self.device = device
-        self.data = data
-        self.length = length
-        self.price = price
-        self.revenue = revenue
-        self.commission = commission
-
-    def __repr__(self):
-        return f'{self.device} with {self.data} costs {self.price}'
-
-
-class Sales(db.Model):
-
-    __tablename__ = 'sales'
-
-    id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    new = db.Column(db.Boolean, nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    discount = db.Column(db.Integer)
-    insurance = db.Column(db.Text)
-
-    def __init__(self, user, new, product_id, discount, insurance):
-        self.user = user
-        self.new = new
-        self.product_id = product_id
-        self.discount = discount
-        self.insurance = insurance
-
-    def __repr__(self):
-        return f'{self.user} sold product id {self.product_id} with {self.discount}% discount'
-
-class Users(db.Model):
-
-    __tablename__ = 'users'
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.Text, nullable=False, unique=True)
-    firstname = db.Column(db.Text, nullable=False)
-    lastname = db.Column(db.Text, nullable=False)
-    password = db.Column(db.Text, nullable=False)
-    email = db.Column(db.Text, nullable=False, unique=True)
-    admin = db.Column(db.Boolean, nullable=False)
-    store_id = db.Column(db.Integer)
-    hours_working = db.Column(db.Integer)
-
-    user_sales = db.relationship('Sales', backref='users', lazy='dynamic')
-    # One to One relationship for user and target
-    user_targets = db.relationship('Targets', backref='user_target', uselist=False)
-
-    def __init__(self, username, firstname, lastname, password, email, admin, store_id, hours):
-        self.username = username
-        self.firstname = firstname
-        self.lastname = lastname
-        self.password = password
-        self.email = email
-        self.admin = admin
-        self.store_id = store_id
-        self.hours_working = hours
-
-    def __repr__(self):
-        return f'{self.firstname} {self.lastname} has username: {self.username}'
-
-
-class StoreTargets(db.Model):
-
-    __tablename__ = 'store_targets'
-
-    id = db.Column(db.Integer, primary_key=True)
-    new = db.Column(db.Integer, nullable=False)
-    upgrades = db.Column(db.Integer, nullable=False)
-    broadband = db.Column(db.Integer, nullable=False)
-    unlimited = db.Column(db.Integer, nullable=False)
-    insurance = db.Column(db.Integer, nullable=False)
-    revenue = db.Column(db.Numeric, nullable=False)
-
-    ind_targets = db.relationship('Targets', backref='store_targets', lazy='dynamic')
-
-    def __init__(self, new, upgrades, broadband, unlimited, insurance, revenue):
-        self.new = new
-        self.upgrades = upgrades
-        self.broadband = broadband
-        self.unlimited = unlimited
-        self.insurance = insurance
-        self.revenue = revenue
-
-    def __repr__(self):
-        return f'Store {self.id} has target new:{self.new}, upgrades: {self.upgrades}, broadband: {self.broadband}' \
-               f', unlimited: {self.unlimited}, insurance: {self.insurance}, revenue: {self.revenue}'
-
-
-class Targets(db.Model):
-
-    __tablename__ = 'targets'
-
-    id = db.Column(db.Integer, primary_key=True)
-    store_id = db.Column(db.Integer, db.ForeignKey('store_targets.id'), nullable=False)
-    username = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
-    new = db.Column(db.Integer, nullable=False)
-    upgrades = db.Column(db.Integer, nullable=False)
-    broadband = db.Column(db.Integer, nullable=False)
-    unlimited = db.Column(db.Integer, nullable=False)
-    insurance = db.Column(db.Integer, nullable=False)
-    revenue = db.Column(db.Numeric, nullable=False)
-
-    def __init__(self, store_id, username, new, upgrades, broadband, unlimited, insurance, revenue):
-        self.store_id = store_id
-        self.username = username
-        self.new = new
-        self.upgrades = upgrades
-        self.broadband = broadband
-        self.unlimited = unlimited
-        self.insurance = insurance
-        self.revenue = revenue
-
-    def __repr__(self):
-        return f'User {self.username} has target new:{self.new}, upgrades: {self.upgrades}, broadband: {self.broadband}' \
-               f', unlimited: {self.unlimited}, insurance: {self.insurance}, revenue: {self.revenue}'
-
-
-######################################
 
 # instantiate bootstrap to be used with form
 bootstrap = Bootstrap5(app)
@@ -186,20 +46,20 @@ def users():
         store_id = users_form.store_id.data
 
         # generate username from firstname and lastname
-        username = firstname+lastname[0]
+        username = firstname.lower()+lastname[0].lower()
         # checks if username exists, adds 1 to end until unique
         unique = False
         add = 0
         while not unique:
             if Users.query.filter_by(username=username).first():
                 add = add + 1
-                username = firstname+lastname[0] + str(add)
+                username = firstname.lower()+lastname[0].lower() + str(add)
             else:
                 unique = True
 
         # ADD LOGIC TO GENERATE FIRST USE PASSWORD
         # new user created - hours initially set to 0
-        new_user = Users(username, firstname, lastname, "password", email, admin, store_id, 0)
+        new_user = Users(username, firstname.title(), lastname.title(), "password", email, admin, store_id, 0)
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for("users"))
@@ -267,6 +127,7 @@ def targets():
 def sales():
     sales_form = SalesForm()
     all_sales = Sales.query.all()
+
     if sales_form.validate_on_submit():
         username = sales_form.username.data
         new = sales_form.new_up.data
@@ -294,5 +155,6 @@ def sales():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    db.init_app(app)
+    app.run(port=5000, debug=True)
 
