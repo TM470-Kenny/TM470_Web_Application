@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 from flask_bootstrap import Bootstrap5
 from db import db
 from forms import SalesForm, ProductsForm, HoursForm, TargetForm, LoginForm, UsersForm
@@ -125,10 +125,20 @@ def targets():
 # route for sales tracker page
 @app.route('/sales/', methods=['GET', 'POST'])
 def sales():
-    sales_form = SalesForm()
     all_sales = Sales.query.all()
 
-    if sales_form.validate_on_submit():
+    sales_form = SalesForm(form_name='Sales Form')
+    # blank default value
+    choices = [""]
+    # set comprehension for unique values converted to list
+    sales_form.username.choices = choices + [row.username for row in Users.query.all()]
+    sales_form.device_name.choices = choices + list({row.device for row in Products.query.all()})
+    sales_form.data_amount.choices = choices + list({row.data for row in Products.query.all()})
+    sales_form.contract_length.choices = choices + list({row.length for row in Products.query.all()})
+    sales_form.price.choices = choices + list({round(row.price,2) for row in Products.query.all()})
+    if request.method == "GET":
+        return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
+    if sales_form.validate_on_submit() and request.form["form_name"] == "Sales Form":
         username = sales_form.username.data
         new = sales_form.new_up.data
         sale_type = sales_form.sale_type.data
@@ -150,8 +160,34 @@ def sales():
         new_sale = Sales(user, new, product_id, discount, insurance)
         db.session.add(new_sale)
         db.session.commit()
-        return redirect(url_for("sales"))
-    return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
+    return redirect(url_for("sales"))
+
+@app.route('/_updatesalesdrop', methods=['POST'])
+def update_sales_drop():
+    filters = list()
+    # append the filter for the form field if it is not empty
+    if request.get_json()['device'] != "":
+        filters.append(Products.device == request.get_json()['device'])
+    if request.get_json()['data'] != "":
+        filters.append(Products.data == request.get_json()['data'])
+    if request.get_json()['length'] != "":
+        filters.append(Products.length == request.get_json()['length'])
+    if request.get_json()['price'] != "":
+        filters.append(Products.price == request.get_json()['price'])
+    # unpack the list to filter the query
+    device = list({row.device for row in Products.query.filter(db.and_(*filters)).all()})
+    data = list({row.data for row in Products.query.filter(db.and_(*filters)).all()})
+    length = list({row.length for row in Products.query.filter(db.and_(*filters)).all()})
+    price = list({round(row.price,2) for row in Products.query.filter(db.and_(*filters)).all()})
+    # check if all values are "" by converting to set, to remove duplicates, and checking length
+    if len({request.get_json()['device'], request.get_json()['data'], request.get_json()['length'],
+            request.get_json()['price']}) == 1:
+        device = list({row.device for row in Products.query.all()})
+        data = list({row.data for row in Products.query.all()})
+        length = list({row.length for row in Products.query.all()})
+        price = list({round(row.price, 2) for row in Products.query.all()})
+    return jsonify({"device": device, "data": data, "length": length, "price": price})
+
 
 
 if __name__ == '__main__':
