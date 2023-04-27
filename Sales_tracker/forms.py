@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField, ValidationError
+from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField, ValidationError, HiddenField
 from wtforms_sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, NumberRange, InputRequired, Email
 
@@ -10,15 +10,16 @@ from models.users import Users
 # form design for sales tracker form
 class SalesForm(FlaskForm):
     # set as current logged in user - admin can change
-    username = QuerySelectField('Username:', query_factory=lambda: Users.query, get_label="username", allow_blank=True, validators=[DataRequired()])
+    form_name = HiddenField('Sales Form')
+    username = SelectField('Username:', validators=[DataRequired()], id='select_user')
     new_up = BooleanField('New?')
     sale_type = SelectField('Sale Type:', choices=['Device', 'Sim', 'Broadband'])
     # visible upon choosing device
-    device_name = QuerySelectField('Device Name:', query_factory=lambda: Products.query, get_label="device", allow_blank=True, validators=[DataRequired()])
-    data_amount = QuerySelectField('Data Amount:', query_factory=lambda: Products.query, get_label="data", allow_blank=True, validators=[DataRequired()])
-    contract_length = QuerySelectField('Contract Length:', query_factory=lambda: Products.query, get_label="length", allow_blank=True, validators=[DataRequired()])
+    device_name = SelectField('Device Name:', validators=[DataRequired()], id='select_device')
+    data_amount = SelectField('Data Amount:', validators=[DataRequired()], id='select_data')
+    contract_length = SelectField('Contract Length:', validators=[DataRequired()], id='select_length')
     # price dependent on data and device selected
-    price = QuerySelectField('Price:', query_factory=lambda: Products.query, get_label="price", allow_blank=True, validators=[DataRequired()])
+    price = SelectField('Price:', validators=[DataRequired()], id='select_price')
     discount = IntegerField('Discount:', validators=[NumberRange(min=0, max=100)])
     # visible upon choosing device
     insurance = SelectField('Insurance:', choices=['None', 'Tier 1 Damage', 'Tier 1 Full', 'Tier 2 Damage'

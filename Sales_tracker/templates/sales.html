@@ -37,6 +37,199 @@
 			</div>
 			<div id="sales_form" class="p-2 mb-4 bg-light rounded-3">
 				{{ render_form(sales_form) }}
+			<script>
+				device_select = document.getElementById("select_device")
+				data_select = document.getElementById("select_data")
+				length_select = document.getElementById("select_length")
+				price_select = document.getElementById("select_price")
+				device_select.onchange = function(){
+					device_val = device_select.value
+					data_val = data_select.value
+					length_val = length_select.value
+					price_val = price_select.value
+					fetch('/_updatesalesdrop', {
+						headers : {
+							'Content-Type' : 'application/json'
+						},
+						method : 'POST',
+						body : JSON.stringify( {
+							'device' : device_val,
+							'data' : data_val,
+							'length' : length_val,
+							'price' : price_val
+						})
+					}).then(function(response) {
+						response.json().then(function(data) {
+							options = '<option value></option>';
+							for (data_amount of data["data"]) {
+								options += '<option value="' + data_amount + '">' + data_amount + '</option>';
+							}
+							select_data.innerHTML = options;
+							data_select.value = data_val
+							options = '<option value></option>';
+							for (length of data["length"]) {
+								options += '<option value="' + length + '">' + length + '</option>';
+							}
+							select_length.innerHTML = options;
+							length_select.value = length_val
+							options = '<option value></option>';
+							for (price of data["price"]) {
+								options += '<option value="' + price + '">' + price + '</option>';
+							}
+							select_price.innerHTML = options;
+							price_select.value = price_val
+							if (device_val == "") {
+								options = '<option value></option>';
+								for (device of data["device"]) {
+								options += '<option value="' + device + '">' + device + '</option>';
+								}
+								select_device.innerHTML = options;
+							}
+						});
+					});
+				}
+				data_select.onchange = function(){
+					device_val = device_select.value
+					data_val = data_select.value
+					length_val = length_select.value
+					price_val = price_select.value
+					fetch('/_updatesalesdrop', {
+						headers : {
+							'Content-Type' : 'application/json'
+						},
+						method : 'POST',
+						body : JSON.stringify( {
+							'device' : device_val,
+							'data' : data_val,
+							'length' : length_val,
+							'price' : price_val
+						})
+					}).then(function(response) {
+						response.json().then(function(data) {
+							options = '<option value></option>';
+							for (device of data["device"]) {
+								options += '<option value="' + device + '">' + device + '</option>';
+							}
+							select_device.innerHTML = options;
+							device_select.value = device_val
+							options = '<option value></option>';
+							for (length of data["length"]) {
+								options += '<option value="' + length + '">' + length + '</option>';
+							}
+							select_length.innerHTML = options;
+							length_select.value = length_val
+							options = '<option value></option>';
+							for (price of data["price"]) {
+								options += '<option value="' + price + '">' + price + '</option>';
+							}
+							select_price.innerHTML = options;
+							price_select.value = price_val
+							if (data_val == "") {
+								options = '<option value></option>';
+								for (data_amount of data["data"]) {
+								options += '<option value="' + data_amount + '">' + data_amount + '</option>';
+								}
+								select_data.innerHTML = options;
+							}
+						});
+					});
+				}
+
+				length_select.onchange = function(){
+					device_val = device_select.value
+					data_val = data_select.value
+					length_val = length_select.value
+					price_val = price_select.value
+					fetch('/_updatesalesdrop', {
+						headers : {
+							'Content-Type' : 'application/json'
+						},
+						method : 'POST',
+						body : JSON.stringify( {
+							'device' : device_val,
+							'data' : data_val,
+							'length' : length_val,
+							'price' : price_val
+						})
+					}).then(function(response) {
+						response.json().then(function(data) {
+							options = '<option value></option>';
+							for (device of data["device"]) {
+								options += '<option value="' + device + '">' + device + '</option>';
+							}
+							select_device.innerHTML = options;
+							device_select.value = device_val
+							options = '<option value></option>';
+							for (data_amount of data["data"]) {
+								options += '<option value="' + data_amount + '">' + data_amount + '</option>';
+							}
+							select_data.innerHTML = options;
+							options = '<option value></option>';
+							for (price of data["price"]) {
+								options += '<option value="' + price + '">' + price + '</option>';
+							}
+							select_price.innerHTML = options;
+							price_select.value = price_val
+							data_select.value = data_val
+							if (length_val == "") {
+								options = '<option value></option>';
+								for (length of data["length"]) {
+								options += '<option value="' + length + '">' + length + '</option>';
+								}
+								select_length.innerHTML = options;
+							}
+						});
+					});
+				}
+
+				price_select.onchange = function(){
+					device_val = device_select.value
+					data_val = data_select.value
+					length_val = length_select.value
+					price_val = price_select.value
+					fetch('/_updatesalesdrop', {
+						headers : {
+							'Content-Type' : 'application/json'
+						},
+						method : 'POST',
+						body : JSON.stringify( {
+							'device' : device_val,
+							'data' : data_val,
+							'length' : length_val,
+							'price' : price_val
+						})
+					}).then(function(response) {
+						response.json().then(function(data) {
+							options = '<option value></option>';
+							for (device of data["device"]) {
+								options += '<option value="' + device + '">' + device + '</option>';
+							}
+							select_device.innerHTML = options;
+							options = '<option value></option>';
+							device_select.value = device_val
+							for (data_amount of data["data"]) {
+								options += '<option value="' + data_amount + '">' + data_amount + '</option>';
+							}
+							select_data.innerHTML = options;
+							options = '<option value></option>';
+							for (length of data["length"]) {
+								options += '<option value="' + length + '">' + length + '</option>';
+							}
+							select_length.innerHTML = options;
+							length_select.value = length_val
+							data_select.value = data_val
+							if (price_val == "") {
+								options = '<option value></option>';
+								for (price of data["price"]) {
+								options += '<option value="' + price + '">' + price + '</option>';
+								}
+								select_price.innerHTML = options;
+							}
+						});
+					});
+				}
+			</script>
+			</div>
 			<div id="sales_list" class="p-2 mb-4 bg-light rounded-3">
 				<p>LIST OF ALL SALES IN DATABASE</p>
 				<table id="data" class="table table-striped">
