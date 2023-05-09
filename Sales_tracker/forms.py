@@ -41,6 +41,7 @@ class ProductsForm(FlaskForm):
 
 
 class UsersForm(FlaskForm):
+    user_id = HiddenField(id='user_id')
     firstname = StringField('First name:', validators=[InputRequired()])
     lastname = StringField('Last name:', validators=[InputRequired()])
     email = StringField('Email:', validators=[Email()])
