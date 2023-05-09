@@ -10,7 +10,7 @@ from models.users import Users
 # form design for sales tracker form
 class SalesForm(FlaskForm):
     # set as current logged in user - admin can change
-    form_name = HiddenField('Sales Form')
+    sale_id = HiddenField(id="sale_id")
     username = SelectField('Username:', validators=[DataRequired()], id='select_user')
     new_up = BooleanField('New?')
     sale_type = SelectField('Sale Type:', choices=['Device', 'Sim', 'Broadband'])
@@ -31,12 +31,13 @@ class SalesForm(FlaskForm):
 
 # form design for sales tracker form
 class ProductsForm(FlaskForm):
-    device_name = StringField('Device Name:')
-    data_amount = IntegerField('Data Amount:')
-    contract_length = SelectField('Contract Length:', choices=['', 12, 24, 36])
-    price = DecimalField('Price:')
-    revenue = DecimalField('Revenue:')
-    commission = DecimalField('Commission:')
+    product_id = HiddenField(id='product_id')
+    device_name = StringField('Device Name:', validators=[DataRequired()])
+    data_amount = IntegerField('Data Amount:', validators=[DataRequired()])
+    contract_length = SelectField('Contract Length:', choices=['', 12, 24, 36], validators=[DataRequired()])
+    price = DecimalField('Price:', validators=[DataRequired()])
+    revenue = DecimalField('Revenue:', validators=[DataRequired()])
+    commission = DecimalField('Commission:', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 
@@ -51,18 +52,18 @@ class UsersForm(FlaskForm):
 
 
 class TargetForm(FlaskForm):
-    new = IntegerField('New:')
-    upgrades = IntegerField('Upgrades:')
-    broadband = IntegerField('Broadband:')
-    unlimited = IntegerField('Unlimited:')
-    insurance = IntegerField('Insurance:')
-    revenue = IntegerField('Revenue:')
+    new = IntegerField('New:', validators=[DataRequired()])
+    upgrades = IntegerField('Upgrades:', validators=[DataRequired()])
+    broadband = IntegerField('Broadband:', validators=[DataRequired()])
+    unlimited = IntegerField('Unlimited:', validators=[DataRequired()])
+    insurance = IntegerField('Insurance:', validators=[DataRequired()])
+    revenue = IntegerField('Revenue:', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 
 class HoursForm(FlaskForm):
-    username = StringField('Username:')
-    hours = IntegerField('Hours working:')
+    username = SelectField('Username:', validators=[DataRequired()])
+    hours = IntegerField('Hours working:', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 
