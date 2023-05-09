@@ -1,4 +1,6 @@
 from db import db
+from models.products import Products
+from models.users import Users
 
 
 class Sales(db.Model):
@@ -20,4 +22,4 @@ class Sales(db.Model):
         self.insurance = insurance
 
     def __repr__(self):
-        return f'{self.user} sold product id {self.product_id} with {self.discount}% discount'
+        return f'{Users.query.filter_by(id=self.user).first().username} of product {Products.query.filter_by(id=self.product_id).first().device} with {self.discount}% discount and {self.insurance} insurance'

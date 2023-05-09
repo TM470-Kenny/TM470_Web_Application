@@ -101,12 +101,34 @@ def database():
         price = products_form.price.data
         revenue = products_form.revenue.data
         commission = products_form.commission.data
-
-        new_product = Products(device, data, length, price, revenue, commission)
-        db.session.add(new_product)
-        db.session.commit()
+        if products_form.product_id.data == "":
+            new_product = Products(device, data, length, price, revenue, commission)
+            db.session.add(new_product)
+            db.session.commit()
+        else:
+            update_product = Products.query.filter_by(id=products_form.product_id.data).first()
+            update_product.device = device
+            update_product.data = data
+            update_product.length = length
+            update_product.price = price
+            update_product.revenue = revenue
+            update_product.commission = commission
+            db.session.commit()
         return redirect(url_for("database"))
     return render_template("database.html", products_form=products_form, all_products=all_products)
+
+
+@app.route('/_getproduct', methods=['POST'])
+def get_product():
+    product = Products.query.filter_by(id=request.get_json()["id"]).first()
+    return jsonify({"device": product.device, "data": product.data, "length": product.length, "price": round(product.price, 2), "revenue": round(product.revenue, 2), "commission": round(product.commission, 2)})
+
+
+@app.route('/<int:product_id>/delete_product/', methods=["POST"])
+def delete_product(product_id):
+    Products.query.filter_by(id=product_id).delete()
+    db.session.commit()
+    return redirect(url_for("database"))
 
 
 # route for targets page
@@ -116,6 +138,8 @@ def targets():
     hours_form = HoursForm()
     store_targets = StoreTargets.query.all()
     user_targets = Targets.query.all()
+    choices = [""]
+    hours_form.username.choices = choices + [row.username for row in Users.query.all()]
     if target_form.validate_on_submit():
         # EDIT EXISTING STORE TARGET BASED ON ADMIN LOGIN STORE ID
         # CURRENTLY ONLY ABLE TO ADD NEW TARGET WITH NEW STORE ID
@@ -131,15 +155,10 @@ def targets():
         db.session.commit()
         return redirect(url_for("targets"))
     if hours_form.validate_on_submit():
-        username = hours_form.username.data
-
-        # find the user if in users table from username input in form
-        user = Users.query.filter_by(username=username).first().id
-
         # NEED TO EDIT EXISTING USER - UPDATE THE SELECTED USERS NUM HOURS INPUT
-        # user_hours = Users()
-        # db.session.add(user_hours)
-        # db.session.commit()
+        update_user = Users.query.filter_by(username=hours_form.username.data).first()
+        update_user.hours_working = hours_form.hours.data
+        db.session.commit()
         return redirect(url_for("targets"))
     return render_template("targets.html", hours_form=hours_form, target_form=target_form, store_targets=store_targets,
                            user_targets=user_targets)
@@ -161,7 +180,7 @@ def sales():
     sales_form.price.choices = choices + list({round(row.price,2) for row in Products.query.all()})
     if request.method == "GET":
         return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
-    if sales_form.validate_on_submit() and request.form["form_name"] == "Sales Form":
+    if sales_form.validate_on_submit():
         username = sales_form.username.data
         new = sales_form.new_up.data
         sale_type = sales_form.sale_type.data
@@ -180,9 +199,18 @@ def sales():
         # find the user if in users table from username input in form
         user = Users.query.filter_by(username=username).first().id
 
-        new_sale = Sales(user, new, product_id, discount, insurance)
-        db.session.add(new_sale)
-        db.session.commit()
+        if sales_form.sale_id.data == "":
+            new_sale = Sales(user, new, product_id, discount, insurance)
+            db.session.add(new_sale)
+            db.session.commit()
+        else:
+            update_sale = Sales.query.filter_by(id=sales_form.sale_id.data).first()
+            update_sale.user = user
+            update_sale.new = new
+            update_sale.product_id = product_id
+            update_sale.discount = discount
+            update_sale.insurance = insurance
+            db.session.commit()
     return redirect(url_for("sales"))
 
 @app.route('/_updatesalesdrop', methods=['POST'])
@@ -210,6 +238,20 @@ def update_sales_drop():
         length = list({row.length for row in Products.query.all()})
         price = list({round(row.price, 2) for row in Products.query.all()})
     return jsonify({"device": device, "data": data, "length": length, "price": price})
+
+@app.route('/_getsale', methods=['POST'])
+def get_sale():
+    sale = Sales.query.filter_by(id=request.get_json()["id"]).first()
+    user = Users.query.filter_by(id=sale.user).first()
+    product = Products.query.filter_by(id=sale.product_id).first()
+    return jsonify({"username": user.username, "new": sale.new, "device": product.device, "data": product.data, "length": product.length, "price": round(product.price, 2), "discount": sale.discount, "insurance": sale.insurance})
+
+
+@app.route('/<int:sale_id>/delete_sale/', methods=["POST"])
+def delete_sale(sale_id):
+    Sales.query.filter_by(id=sale_id).delete()
+    db.session.commit()
+    return redirect(url_for("sales"))
 
 
 

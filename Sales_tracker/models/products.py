@@ -24,7 +24,7 @@ class Products(db.Model):
         self.commission = commission
 
     def __repr__(self):
-        return f'{self.device} with {self.data} costs {self.price}'
+        return f'{self.device} with {self.data}GB at £{round(self.price, 2)} for {self.length} months'
 
     @classmethod
     def all_length(cls, device, data):
