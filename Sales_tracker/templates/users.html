@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Users Page</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	{% from 'bootstrap5/form.html' import render_form %}
 </head>
 <body>
@@ -52,6 +53,8 @@
 						<th>Admin Access</th>
 						<th>Store ID</th>
 						<th>Hours Working</th>
+						<th></th>
+						<th></th>
 					  </tr>
 					</thead>
 					<tbody>
@@ -65,8 +68,35 @@
 						  <td>{{ user.admin }}</td>
 						  <td>{{ user.store_id }}</td>
 						  <td>{{ user.hours_working }}</td>
+						  <td>
+							  <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}">
+							  <button type="submit" onclick="return confirm('Are you sure you want to delete user {{user.username}}?')"><i class="fa fa-trash"></i></button></form> </td>
+							  <td><button id="{{user.id}}" onclick="add_id(this.id)"><i class="fa fa-pencil"></i></button></td>
 						</tr>
 					  {% endfor %}
+					<script>
+						function add_id(button_id){
+							document.getElementById("user_id").value = button_id;
+							fetch('/_getuser', {
+						headers : {
+							'Content-Type' : 'application/json'
+						},
+						method : 'POST',
+						body : JSON.stringify( {
+							'id' : button_id,
+						})
+					}).then(function(response) {
+						response.json().then(function(data) {
+							document.getElementById("firstname").value = data["firstname"];
+							document.getElementById("lastname").value = data["lastname"];
+							document.getElementById("email").value = data["email"];
+							document.getElementById("admin").checked = data["admin"];
+							document.getElementById("store_id").value = data["store"];
+						});
+					});
+
+						}
+					</script>
 					</tbody>
 			  	</table>
 			</div>

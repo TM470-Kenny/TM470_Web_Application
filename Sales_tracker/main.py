@@ -44,26 +44,49 @@ def users():
         email = users_form.email.data
         admin = users_form.admin.data
         store_id = users_form.store_id.data
+        if users_form.user_id.data == "":
+            # generate username from firstname and lastname
+            username = firstname.lower()+lastname[0].lower()
+            # checks if username exists, adds 1 to end until unique
+            unique = False
+            add = 0
+            while not unique:
+                if Users.query.filter_by(username=username).first():
+                    add = add + 1
+                    username = firstname.lower()+lastname[0].lower() + str(add)
+                else:
+                    unique = True
 
-        # generate username from firstname and lastname
-        username = firstname.lower()+lastname[0].lower()
-        # checks if username exists, adds 1 to end until unique
-        unique = False
-        add = 0
-        while not unique:
-            if Users.query.filter_by(username=username).first():
-                add = add + 1
-                username = firstname.lower()+lastname[0].lower() + str(add)
-            else:
-                unique = True
-
-        # ADD LOGIC TO GENERATE FIRST USE PASSWORD
-        # new user created - hours initially set to 0
-        new_user = Users(username, firstname.title(), lastname.title(), "password", email, admin, store_id, 0)
-        db.session.add(new_user)
-        db.session.commit()
+            # ADD LOGIC TO GENERATE FIRST USE PASSWORD
+            # new user created - hours initially set to 0
+            new_user = Users(username, firstname.title(), lastname.title(), "password", email, admin, store_id, 0)
+            db.session.add(new_user)
+            db.session.commit()
+        else:
+            # Find entry using user id in hidden field
+            update_user = Users.query.filter_by(id=users_form.user_id.data).first()
+            update_user.firstname = firstname
+            update_user.lastname = lastname
+            update_user.email = email
+            update_user.admin = admin
+            update_user.store_id = store_id
+            db.session.commit()
         return redirect(url_for("users"))
     return render_template("users.html", users_form=users_form, all_users=all_users)
+
+
+@app.route('/_getuser', methods=['POST'])
+def get_user():
+    user = Users.query.filter_by(id=request.get_json()["id"]).first()
+    return jsonify({"firstname": user.firstname, "lastname": user.lastname, "email": user.email, "admin": user.admin, "store": user.store_id})
+
+
+# route for deleting selected user
+@app.route('/<int:user_id>/delete_user/', methods=["POST"])
+def delete_user(user_id):
+    Users.query.filter_by(id=user_id).delete()
+    db.session.commit()
+    return redirect(url_for("users"))
 
 
 # route for database page
