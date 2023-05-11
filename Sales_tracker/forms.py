@@ -47,7 +47,7 @@ class UsersForm(FlaskForm):
     lastname = StringField('Last name:', validators=[InputRequired()])
     email = StringField('Email:', validators=[Email()])
     admin = BooleanField('Admin?')
-    store_id = SelectField('Store ID:', choices=['', 1])
+    store_id = SelectField('Store ID:', choices=['', 1, 2])
     submit = SubmitField('Submit')
 
 

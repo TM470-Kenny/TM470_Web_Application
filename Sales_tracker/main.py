@@ -62,6 +62,7 @@ def users():
             new_user = Users(username, firstname.title(), lastname.title(), "password", email, admin, store_id, 0)
             db.session.add(new_user)
             db.session.commit()
+            calc_targets()
         else:
             # Find entry using user id in hidden field
             update_user = Users.query.filter_by(id=users_form.user_id.data).first()
@@ -69,8 +70,13 @@ def users():
             update_user.lastname = lastname
             update_user.email = email
             update_user.admin = admin
+            # if the store id is changed then remove the target linked to this user
+            if update_user.store_id != store_id:
+                Targets.query.filter_by(username=update_user.id).delete()
             update_user.store_id = store_id
             db.session.commit()
+            # recalculate user targets
+            calc_targets()
         return redirect(url_for("users"))
     return render_template("users.html", users_form=users_form, all_users=all_users)
 
@@ -85,7 +91,10 @@ def get_user():
 @app.route('/<int:user_id>/delete_user/', methods=["POST"])
 def delete_user(user_id):
     Users.query.filter_by(id=user_id).delete()
+    # when the user is deleted the target linked to the user is deleted and targets are then recalculated
+    Targets.query.filter_by(username=user_id).delete()
     db.session.commit()
+    calc_targets()
     return redirect(url_for("users"))
 
 
@@ -153,15 +162,57 @@ def targets():
         new_target = StoreTargets(new, upgrades, broadband, unlimited, insurance, revenue)
         db.session.add(new_target)
         db.session.commit()
+        calc_targets()
         return redirect(url_for("targets"))
     if hours_form.validate_on_submit():
         # NEED TO EDIT EXISTING USER - UPDATE THE SELECTED USERS NUM HOURS INPUT
         update_user = Users.query.filter_by(username=hours_form.username.data).first()
         update_user.hours_working = hours_form.hours.data
         db.session.commit()
+        calc_targets()
         return redirect(url_for("targets"))
     return render_template("targets.html", hours_form=hours_form, target_form=target_form, store_targets=store_targets,
                            user_targets=user_targets)
+
+
+def calc_targets():
+    store_targets = StoreTargets.query.all()
+    user_targets = Targets.query.all()
+
+    # for each store id
+    for store in store_targets:
+        total_hours = 0
+        store_users = Users.query.filter_by(store_id=store.id).all()
+        for user in store_users:
+            # calculate total num hours
+            total_hours += user.hours_working
+        if total_hours > 0:
+            for user in store_users:
+                # divide targets by total num hours * current users hours
+                new = round((store.new / total_hours) * user.hours_working, 0)
+                upgrades = round((store.upgrades / total_hours) * user.hours_working, 0)
+                broadband = round((store.broadband / total_hours) * user.hours_working, 0)
+                unlimited = round((store.unlimited / total_hours) * user.hours_working, 0)
+                insurance = round((store.insurance / total_hours) * user.hours_working, 0)
+                revenue = round((store.revenue / total_hours) * user.hours_working, 2)
+                # creating list of usernames to compare against usernames in targets table
+                names = [Users.query.filter_by(id=name.username).first().username for name in user_targets]
+                # if user exists in targets table
+                if user.username in names:
+                    # update results in existing user target
+                    update_target = Targets.query.filter_by(username=user.id).first()
+                    update_target.new = new
+                    update_target.upgrades = upgrades
+                    update_target.broadband = broadband
+                    update_target.unlimited = unlimited
+                    update_target.insurance = insurance
+                    update_target.revenue = revenue
+                    db.session.commit()
+                else:
+                    # add results to new target entry
+                    new_target = Targets(store.id, user.id, new, upgrades, broadband, unlimited, insurance, revenue)
+                    db.session.add(new_target)
+                    db.session.commit()
 
 
 # route for sales tracker page
