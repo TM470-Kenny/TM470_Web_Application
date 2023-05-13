@@ -13,19 +13,19 @@ class SalesForm(FlaskForm):
     sale_id = HiddenField(id="sale_id")
     username = SelectField('Username:', validators=[DataRequired()], id='select_user')
     new_up = BooleanField('New?')
-    sale_type = SelectField('Sale Type:', choices=['Device', 'Sim', 'Broadband'])
+    sale_type = SelectField('Sale Type:', validators=[DataRequired()], choices=['Device', 'Sim', 'Broadband'])
     # visible upon choosing device
     device_name = SelectField('Device Name:', validators=[DataRequired()], id='select_device')
     data_amount = SelectField('Data Amount:', validators=[DataRequired()], id='select_data')
     contract_length = SelectField('Contract Length:', validators=[DataRequired()], id='select_length')
     # price dependent on data and device selected
     price = SelectField('Price:', validators=[DataRequired()], id='select_price')
-    discount = IntegerField('Discount:', validators=[NumberRange(min=0, max=100)])
+    discount = SelectField('Discount:', validators=[DataRequired()], choices=[0, 5, 10, 15, 20])
     # visible upon choosing device
-    insurance = SelectField('Insurance:', choices=['None', 'Tier 1 Damage', 'Tier 1 Full', 'Tier 2 Damage'
+    insurance = SelectField('Insurance:', validators=[DataRequired()], choices=['None', 'Tier 1 Damage', 'Tier 1 Full', 'Tier 2 Damage'
                             , 'Tier 2 Full'])
     # visible upon choosing broadband
-    broadband = SelectField('Broadband Type:', choices=['Copper', 'Fibre 1', 'Fibre 2', 'Full Fibre'])
+    broadband = SelectField('Broadband Type:', validators=[DataRequired()], choices=['Copper', 'Fibre 1', 'Fibre 2', 'Full Fibre'])
     submit = SubmitField('Submit')
 
 

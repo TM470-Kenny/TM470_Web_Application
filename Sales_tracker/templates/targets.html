@@ -60,24 +60,32 @@
 						<tr>
 						  <td>{{ store_target.id }}</td>
 						  <td>Store</td>
-						  <td>{{ store_target.new }}</td>
-						  <td>{{ store_target.upgrades }}</td>
-						  <td>{{ store_target.broadband }}</td>
-						  <td>{{ store_target.unlimited }}</td>
-						  <td>{{ store_target.insurance }}</td>
-						  <td>£{{ store_target.revenue|round(2) }}</td>
+						  <td>{{ store_target.store_progress.new }} / <b>{{ store_target.new }}</b></td>
+						  <td>{{ store_target.store_progress.upgrades }} / <b>{{ store_target.upgrades }}</b></td>
+						  <td>{{ store_target.store_progress.broadband }} / <b>{{ store_target.broadband }}</b></td>
+						  <td>{{ store_target.store_progress.unlimited }} / <b>{{ store_target.unlimited }}</b></td>
+						  <td>{{ store_target.store_progress.insurance }} / <b>{{ store_target.insurance }}</b></td>
+						  {% if store_target.store_progress.revenue is defined %}
+						  <td>£{{ store_target.store_progress.revenue|round(2) }} / <b>£{{ store_target.revenue|round(2) }}</b></td>
+							{% else %}
+							<td> / <b>£{{ store_target.revenue|round(2) }}</b></td>
+							{% endif %}
 						</tr>
 					  {% endfor %}
 						{% for target in user_targets %}
 						<tr>
 						  <td>{{ target.store_id }}</td>
 						  <td>{{ target.user_target.username }}</td>
-						  <td>{{ target.new }}</td>
-						  <td>{{ target.upgrades }}</td>
-						  <td>{{ target.broadband }}</td>
-						  <td>{{ target.unlimited }}</td>
-						  <td>{{ target.insurance }}</td>
-						  <td>£{{ target.revenue|round(2) }}</td>
+						  <td>{{ target.user_progress.new }} / <b>{{ target.new }}</b></td>
+						  <td>{{ target.user_progress.upgrades }} / <b>{{ target.upgrades }}</b></td>
+						  <td>{{ target.user_progress.broadband }} / <b>{{ target.broadband }}</b></td>
+						  <td>{{ target.user_progress.unlimited }} / <b>{{ target.unlimited }}</b></td>
+						  <td>{{ target.user_progress.insurance }} / <b>{{ target.insurance }}</b></td>
+						  {% if target.user_progress.revenue is defined %}
+						  <td>£{{ target.user_progress.revenue|round(2) }} / <b>£{{ target.revenue|round(2) }}</b></td>
+							{% else %}
+							<td> / <b>£{{ target.revenue|round(2) }}</b></td>
+							{% endif %}
 						</tr>
 					  {% endfor %}
 					</tbody>
