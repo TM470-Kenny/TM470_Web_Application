@@ -16,7 +16,7 @@ class Users(db.Model):
     hours_working = db.Column(db.Integer)
 
     user_sales = db.relationship('Sales', backref='users', lazy='dynamic')
-    # One to One relationship for user and target
+    # One to One relationship for user and target/progress
     user_targets = db.relationship('Targets', backref='user_target', uselist=False)
 
     def __init__(self, username, firstname, lastname, password, email, admin, store_id, hours):

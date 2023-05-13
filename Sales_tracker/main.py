@@ -6,7 +6,7 @@ import os
 
 from models.products import Products
 from models.sales import Sales
-from models.targets import StoreTargets, Targets
+from models.targets import StoreTargets, Targets, Progress, StoreProgress
 from models.users import Users
 
 # instantiate the Flask object
@@ -239,21 +239,20 @@ def sales():
         data = sales_form.data_amount.data
         length = sales_form.contract_length.data
         price = sales_form.price.data
-        discount = sales_form.discount.data
+        discount = 0 if sales_form.discount.data is None else sales_form.discount.data
         insurance = sales_form.insurance.data
         broadband = sales_form.broadband.data
-
         # find the product id in products table from details input in form
         product_id = Products.query.filter(db.and_(Products.device == device, Products.data == data,
                                                    Products.length == length, Products.price == price)).first().id
 
         # find the user if in users table from username input in form
         user = Users.query.filter_by(username=username).first().id
-
         if sales_form.sale_id.data == "":
             new_sale = Sales(user, new, product_id, discount, insurance)
             db.session.add(new_sale)
             db.session.commit()
+            update_progress(new_sale)
         else:
             update_sale = Sales.query.filter_by(id=sales_form.sale_id.data).first()
             update_sale.user = user
@@ -304,6 +303,91 @@ def delete_sale(sale_id):
     db.session.commit()
     return redirect(url_for("sales"))
 
+def update_progress(sale):
+    if Progress.query.filter_by(username=sale.user).first() is None:
+        # if new add 1 to new
+        if sale.new:
+            new = 1
+            upgrades = 0
+        # else add 1 to upgrades
+        else:
+            new = 0
+            upgrades = 1
+        # if data = 999 (unlimited) add 1 to unlimited
+        if Products.query.filter_by(id=sale.product_id).first().data == 999:
+            unlimited = 1
+        else:
+            unlimited = 0
+        # if insurance = NONE dont add
+        if sale.insurance == "None":
+            insurance = 0
+        # else add 1 to insurance
+        else:
+            insurance = 1
+
+        new_progress = Progress(sale.user, new, upgrades, 0, unlimited, insurance, revenue=Products.query.filter_by(id=sale.product_id).first().revenue)
+        db.session.add(new_progress)
+        db.session.commit()
+    else:
+        user_progress = Progress.query.filter_by(username=sale.user).first()
+        if sale.new:
+            user_progress.new += 1
+        # else add 1 to upgrades
+        else:
+            user_progress.upgrades += 1
+        # if data = 999 (unlimited) add 1 to unlimited
+        if Products.query.filter_by(id=sale.product_id).first().data == 999:
+            user_progress.unlimited += 1
+        # if insurance = NONE dont add
+        if sale.insurance != "None":
+            user_progress.insurance += 1
+
+        user_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
+        db.session.commit()
+    #print(Progress.query.join(Users, ))
+
+    # if no target add new store progress from first sale
+    if StoreProgress.query.filter_by(store_id=Users.query.filter_by(id=sale.user).first().store_id).first() is None:
+        new_store_progress = StoreProgress(Users.query.filter_by(id=sale.user).first().store_id, new, upgrades, 0, unlimited, insurance,
+                                revenue=Products.query.filter_by(id=sale.product_id).first().revenue)
+        db.session.add(new_store_progress)
+        db.session.commit()
+    # if target then sum columns in progress table and update store progress
+    else:
+        storeid = Users.query.filter_by(id=sale.user).first().store_id
+        update_store_progress = StoreProgress.query.filter_by(store_id=storeid).first()
+
+        if sale.new:
+            update_store_progress.new += 1
+        # else add 1 to upgrades
+        else:
+            update_store_progress.upgrades += 1
+        # if data = 999 (unlimited) add 1 to unlimited
+        if Products.query.filter_by(id=sale.product_id).first().data == 999:
+            update_store_progress.unlimited += 1
+        # if insurance = NONE dont add
+        if sale.insurance != "None":
+            update_store_progress.insurance += 1
+
+        update_store_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
+        db.session.commit()
+
+        # # reset store progress and loop through each users progress for this store
+        # storeid_users = Users.query.filter_by(store_id=storeid).all()
+        # update_store_progress.new = 0
+        # update_store_progress.upgrades = 0
+        # update_store_progress.broadband = 0
+        # update_store_progress.unlimited = 0
+        # update_store_progress.insurance = 0
+        # update_store_progress.revenue = 0
+        # for progress in [Progress.query.filter_by(username=user.id).first() for user in storeid_users]:
+        #     update_store_progress.new += progress.new
+        #     update_store_progress.upgrades += progress.upgrades
+        #     update_store_progress.broadband += progress.broadband
+        #     update_store_progress.unlimited += progress.unlimited
+        #     update_store_progress.insurance += progress.insurance
+        #     update_store_progress.revenue += progress.revenue
+        #     db.session.commit()
 
 
 if __name__ == '__main__':
