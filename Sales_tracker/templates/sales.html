@@ -43,7 +43,11 @@
 				data_select = document.getElementById("select_data")
 				length_select = document.getElementById("select_length")
 				price_select = document.getElementById("select_price")
-				device_select.onchange = function(){
+				device_select.addEventListener("change", update_device);
+				data_select.addEventListener("change", update_data);
+				length_select.addEventListener("change", update_length);
+				price_select.addEventListener("change", update_price);
+				function update_device(){
 					device_val = device_select.value
 					data_val = data_select.value
 					length_val = length_select.value
@@ -89,7 +93,8 @@
 						});
 					});
 				}
-				data_select.onchange = function(){
+
+				function update_data(){
 					device_val = device_select.value
 					data_val = data_select.value
 					length_val = length_select.value
@@ -136,7 +141,7 @@
 					});
 				}
 
-				length_select.onchange = function(){
+				function update_length(){
 					device_val = device_select.value
 					data_val = data_select.value
 					length_val = length_select.value
@@ -183,7 +188,7 @@
 					});
 				}
 
-				price_select.onchange = function(){
+				function update_price(){
 					device_val = device_select.value
 					data_val = data_select.value
 					length_val = length_select.value
@@ -265,7 +270,7 @@
 							<td>
 							  <form method="POST" action="{{ url_for('delete_sale', sale_id=sale.id) }}">
 							  <button type="submit" onclick="return confirm('Are you sure you want to delete sale by {{sale}}?')"><i class="fa fa-trash"></i></button></form> </td>
-							  <td><button id="{{sale.id}}" onclick="add_id(this.id)"><i class="fa fa-pencil"></i></button></td>
+							  <td><button id="{{sale.id}}" onclick="add_id(this.id);"><i class="fa fa-pencil"></i></button></td>
 						</tr>
 					  {% endfor %}
 					<script>

@@ -228,7 +228,7 @@ def sales():
     sales_form.device_name.choices = choices + list({row.device for row in Products.query.all()})
     sales_form.data_amount.choices = choices + list({row.data for row in Products.query.all()})
     sales_form.contract_length.choices = choices + list({row.length for row in Products.query.all()})
-    sales_form.price.choices = choices + list({round(row.price,2) for row in Products.query.all()})
+    sales_form.price.choices = choices + list({round(row.price, 2) for row in Products.query.all()})
     if request.method == "GET":
         return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
     if sales_form.validate_on_submit():
@@ -252,14 +252,16 @@ def sales():
             new_sale = Sales(user, new, product_id, discount, insurance)
             db.session.add(new_sale)
             db.session.commit()
-            update_progress(new_sale)
+            update_progress("add", new_sale)
         else:
             update_sale = Sales.query.filter_by(id=sales_form.sale_id.data).first()
+            update_progress("delete", update_sale)
             update_sale.user = user
             update_sale.new = new
             update_sale.product_id = product_id
             update_sale.discount = discount
             update_sale.insurance = insurance
+            update_progress("add", update_sale)
             db.session.commit()
     return redirect(url_for("sales"))
 
@@ -299,11 +301,14 @@ def get_sale():
 
 @app.route('/<int:sale_id>/delete_sale/', methods=["POST"])
 def delete_sale(sale_id):
+    deleted_sale = Sales.query.filter_by(id=sale_id).first()
+    update_progress("delete", deleted_sale)
     Sales.query.filter_by(id=sale_id).delete()
     db.session.commit()
     return redirect(url_for("sales"))
 
-def update_progress(sale):
+def update_progress(sale_func, sale):
+    # if user has not made a sale yet
     if Progress.query.filter_by(username=sale.user).first() is None:
         # if new add 1 to new
         if sale.new:
@@ -328,23 +333,37 @@ def update_progress(sale):
         new_progress = Progress(sale.user, new, upgrades, 0, unlimited, insurance, revenue=Products.query.filter_by(id=sale.product_id).first().revenue)
         db.session.add(new_progress)
         db.session.commit()
+    # if user has made a sale
     else:
         user_progress = Progress.query.filter_by(username=sale.user).first()
-        if sale.new:
-            user_progress.new += 1
-        # else add 1 to upgrades
-        else:
-            user_progress.upgrades += 1
-        # if data = 999 (unlimited) add 1 to unlimited
-        if Products.query.filter_by(id=sale.product_id).first().data == 999:
-            user_progress.unlimited += 1
-        # if insurance = NONE dont add
-        if sale.insurance != "None":
-            user_progress.insurance += 1
+        # if sale is being deleted, remove from progress where required
+        if sale_func == "delete":
+            if sale.new:
+                user_progress.new -= 1
+            else:
+                user_progress.upgrades -= 1
+            if Products.query.filter_by(id=sale.product_id).first().data == 999:
+                user_progress.unlimited -= 1
+            if sale.insurance != "None":
+                user_progress.insurance -= 1
+            user_progress.revenue -= Products.query.filter_by(id=sale.product_id).first().revenue
+        # if sale is being added, add to progress where required
+        if sale_func == "add":
+            if sale.new:
+                user_progress.new += 1
+            # else add 1 to upgrades
+            else:
+                user_progress.upgrades += 1
+            # if data = 999 (unlimited) add 1 to unlimited
+            if Products.query.filter_by(id=sale.product_id).first().data == 999:
+                user_progress.unlimited += 1
+            # if insurance = NONE dont add
+            if sale.insurance != "None":
+                user_progress.insurance += 1
 
-        user_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
+            user_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
         db.session.commit()
-    #print(Progress.query.join(Users, ))
+
 
     # if no target add new store progress from first sale
     if StoreProgress.query.filter_by(store_id=Users.query.filter_by(id=sale.user).first().store_id).first() is None:
@@ -356,20 +375,32 @@ def update_progress(sale):
     else:
         storeid = Users.query.filter_by(id=sale.user).first().store_id
         update_store_progress = StoreProgress.query.filter_by(store_id=storeid).first()
+        # if sale is being deleted, remove from progress where required
+        if sale_func == "delete":
+            if sale.new:
+                update_store_progress.new -= 1
+            else:
+                update_store_progress.upgrades -= 1
+            if Products.query.filter_by(id=sale.product_id).first().data == 999:
+                update_store_progress.unlimited -= 1
+            if sale.insurance != "None":
+                update_store_progress.insurance -= 1
+            update_store_progress.revenue -= Products.query.filter_by(id=sale.product_id).first().revenue
+        if sale_func == "add":
+            if sale.new:
+                update_store_progress.new += 1
+            # else add 1 to upgrades
+            else:
+                update_store_progress.upgrades += 1
+            # if data = 999 (unlimited) add 1 to unlimited
+            if Products.query.filter_by(id=sale.product_id).first().data == 999:
+                update_store_progress.unlimited += 1
+            # if insurance = NONE dont add
+            if sale.insurance != "None":
+                update_store_progress.insurance += 1
 
-        if sale.new:
-            update_store_progress.new += 1
-        # else add 1 to upgrades
-        else:
-            update_store_progress.upgrades += 1
-        # if data = 999 (unlimited) add 1 to unlimited
-        if Products.query.filter_by(id=sale.product_id).first().data == 999:
-            update_store_progress.unlimited += 1
-        # if insurance = NONE dont add
-        if sale.insurance != "None":
-            update_store_progress.insurance += 1
+            update_store_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
 
-        update_store_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
         db.session.commit()
 
         # # reset store progress and loop through each users progress for this store
