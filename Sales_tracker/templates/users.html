@@ -36,6 +36,16 @@
 					</p>
 				</div>
 			</div>
+			{% block content %}
+			<div class="container">
+				{% for message in get_flashed_messages() %}
+				<div class="alert alert-warning">
+					Temporary password: {{ message }}
+				</div>
+				{% endfor %}
+				{% block page_content %}{% endblock %}
+			</div>
+			{% endblock %}
 			<div id="users_form" class="p-2 mb-4 bg-light rounded-3">
 				{{ render_form(users_form) }}
 			</div>

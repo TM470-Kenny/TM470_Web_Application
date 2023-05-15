@@ -1,4 +1,5 @@
 from db import db
+from werkzeug.security import check_password_hash
 
 
 class Users(db.Model):
@@ -31,3 +32,7 @@ class Users(db.Model):
 
     def __repr__(self):
         return f'{self.firstname} {self.lastname} has username: {self.username}'
+
+# method to check the password input matches the hashed password stored in the database
+    def verify_password(self, password):
+        return check_password_hash(self.password, password)
