@@ -1,8 +1,11 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
 from flask_bootstrap import Bootstrap5
 from db import db
 from forms import SalesForm, ProductsForm, HoursForm, TargetForm, LoginForm, UsersForm
 import os
+import secrets
+import string
+from werkzeug.security import generate_password_hash
 
 from models.products import Products
 from models.sales import Sales
@@ -58,11 +61,24 @@ def users():
                     unique = True
 
             # ADD LOGIC TO GENERATE FIRST USE PASSWORD
+            # Create alphabet of accepted password characters
+            letters = string.ascii_letters
+            nums = string.digits
+            special = string.punctuation
+            alphabet = letters + nums + special
+            passw = ''
+            # generate password of 10 characters using specified alphabet and secrets module
+            for i in range(10):
+                passw += ''.join(secrets.choice(alphabet))
+            # password is hashed before being stored in the database
+            hash_p = generate_password_hash(passw)
             # new user created - hours initially set to 0
-            new_user = Users(username, firstname.title(), lastname.title(), "password", email, admin, store_id, 0)
+            new_user = Users(username, firstname.title(), lastname.title(), hash_p, email, admin, store_id, 0)
             db.session.add(new_user)
             db.session.commit()
             calc_targets()
+            # display temp password on users page
+            flash(passw)
         else:
             # Find entry using user id in hidden field
             update_user = Users.query.filter_by(id=users_form.user_id.data).first()
