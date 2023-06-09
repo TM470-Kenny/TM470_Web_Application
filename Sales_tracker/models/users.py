@@ -1,8 +1,9 @@
 from db import db
 from werkzeug.security import check_password_hash
+from flask_login import UserMixin
 
 
-class Users(db.Model):
+class Users(UserMixin, db.Model):
 
     __tablename__ = 'users'
 
@@ -36,3 +37,4 @@ class Users(db.Model):
 # method to check the password input matches the hashed password stored in the database
     def verify_password(self, password):
         return check_password_hash(self.password, password)
+

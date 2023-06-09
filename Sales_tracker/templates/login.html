@@ -19,6 +19,16 @@
 				</nav>
 
 			</header>
+			{% block content %}
+			<div class="container">
+				{% for message in get_flashed_messages() %}
+				<div class="alert alert-warning">
+					{{ message }}
+				</div>
+				{% endfor %}
+				{% block page_content %}{% endblock %}
+			</div>
+			{% endblock %}
 			<div class="p-5 mb-4 bg-light rounded-3">
 				<div class="container-fluid py-5 text-center">
 					<h1 class="display-5 fw-bold">Login Page</h1>
@@ -27,7 +37,6 @@
 					</p>
 				</div>
 			</div>
-
 			<footer class="footer">
 
 				<p>&copy; Kenny Harvey 2023</p>
