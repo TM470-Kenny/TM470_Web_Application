@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
 from flask_bootstrap import Bootstrap5
+from flask_login import LoginManager, login_user, logout_user, login_required
 from db import db
 from forms import SalesForm, ProductsForm, HoursForm, TargetForm, LoginForm, UsersForm
 import os
@@ -25,19 +26,61 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir, 'sales_tracker.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 
+
 # instantiate bootstrap to be used with form
 bootstrap = Bootstrap5(app)
 
+# instantiate the login manager
+lm = LoginManager()
+# set redirect url for unauthorised users
+lm.login_view = "/"
+lm.init_app(app)
+
+#
+@lm.user_loader
+def load_user(user_id):
+    return Users.query.filter_by(id=user_id).first()
+
 
 # basic route for login page - linking to html file
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm()
+    if login_form.validate_on_submit():
+        username = login_form.username.data.lower()
+        password = login_form.password.data
+
+        user = Users.query.filter_by(username=username).first()
+
+        # check password matches if user exists
+        if user:
+            if user.verify_password(password):
+                login_user(user)
+                # delete cookies after 1 hour to reset user login
+                app.config['PERMANENT_SESSION_LIFETIME'] = 3600
+                if user.admin:
+                    return redirect(url_for('users'))
+                else:
+                    return redirect(url_for('targets'))
+            else:
+                flash("Incorrect password")
+        # alert user if username does not exist
+        else:
+            flash("Username invalid")
     return render_template("login.html", login_form=login_form)
 
 
+# route for logging out users back to login page
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("Successfully logged out")
+    return redirect(url_for('login'))
+
 # route for users page
 @app.route('/users/', methods=['GET', 'POST'])
+@login_required
 def users():
     users_form = UsersForm()
     all_users = Users.query.all()
@@ -98,6 +141,7 @@ def users():
 
 
 @app.route('/_getuser', methods=['POST'])
+@login_required
 def get_user():
     user = Users.query.filter_by(id=request.get_json()["id"]).first()
     return jsonify({"firstname": user.firstname, "lastname": user.lastname, "email": user.email, "admin": user.admin, "store": user.store_id})
@@ -105,6 +149,7 @@ def get_user():
 
 # route for deleting selected user
 @app.route('/<int:user_id>/delete_user/', methods=["POST"])
+@login_required
 def delete_user(user_id):
     Users.query.filter_by(id=user_id).delete()
     # when the user is deleted the target linked to the user is deleted and targets are then recalculated
@@ -116,6 +161,7 @@ def delete_user(user_id):
 
 # route for database page
 @app.route('/database/', methods=['GET', 'POST'])
+@login_required
 def database():
     products_form = ProductsForm()
     all_products = Products.query.all()
@@ -144,12 +190,14 @@ def database():
 
 
 @app.route('/_getproduct', methods=['POST'])
+@login_required
 def get_product():
     product = Products.query.filter_by(id=request.get_json()["id"]).first()
     return jsonify({"device": product.device, "data": product.data, "length": product.length, "price": round(product.price, 2), "revenue": round(product.revenue, 2), "commission": round(product.commission, 2)})
 
 
 @app.route('/<int:product_id>/delete_product/', methods=["POST"])
+@login_required
 def delete_product(product_id):
     Products.query.filter_by(id=product_id).delete()
     db.session.commit()
@@ -158,6 +206,7 @@ def delete_product(product_id):
 
 # route for targets page
 @app.route('/targets/', methods=['GET', 'POST'])
+@login_required
 def targets():
     target_form = TargetForm()
     hours_form = HoursForm()
@@ -233,6 +282,7 @@ def calc_targets():
 
 # route for sales tracker page
 @app.route('/sales/', methods=['GET', 'POST'])
+@login_required
 def sales():
     all_sales = Sales.query.all()
 
@@ -282,6 +332,7 @@ def sales():
     return redirect(url_for("sales"))
 
 @app.route('/_updatesalesdrop', methods=['POST'])
+@login_required
 def update_sales_drop():
     filters = list()
     # append the filter for the form field if it is not empty
@@ -308,6 +359,7 @@ def update_sales_drop():
     return jsonify({"device": device, "data": data, "length": length, "price": price})
 
 @app.route('/_getsale', methods=['POST'])
+@login_required
 def get_sale():
     sale = Sales.query.filter_by(id=request.get_json()["id"]).first()
     user = Users.query.filter_by(id=sale.user).first()
@@ -316,6 +368,7 @@ def get_sale():
 
 
 @app.route('/<int:sale_id>/delete_sale/', methods=["POST"])
+@login_required
 def delete_sale(sale_id):
     deleted_sale = Sales.query.filter_by(id=sale_id).first()
     update_progress("delete", deleted_sale)
@@ -418,24 +471,6 @@ def update_progress(sale_func, sale):
             update_store_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
 
         db.session.commit()
-
-        # # reset store progress and loop through each users progress for this store
-        # storeid_users = Users.query.filter_by(store_id=storeid).all()
-        # update_store_progress.new = 0
-        # update_store_progress.upgrades = 0
-        # update_store_progress.broadband = 0
-        # update_store_progress.unlimited = 0
-        # update_store_progress.insurance = 0
-        # update_store_progress.revenue = 0
-        # for progress in [Progress.query.filter_by(username=user.id).first() for user in storeid_users]:
-        #     update_store_progress.new += progress.new
-        #     update_store_progress.upgrades += progress.upgrades
-        #     update_store_progress.broadband += progress.broadband
-        #     update_store_progress.unlimited += progress.unlimited
-        #     update_store_progress.insurance += progress.insurance
-        #     update_store_progress.revenue += progress.revenue
-        #     db.session.commit()
-
 
 if __name__ == '__main__':
     db.init_app(app)
