@@ -233,21 +233,40 @@ def targets():
     target_form = TargetForm()
     hours_form = HoursForm()
     store_targets = StoreTargets.query.all()
-    user_targets = Targets.query.all()
+    # order targets table by users username
+    user_targets = Targets.query.join(Users).order_by(Users.username).all()
+    # get target linked to current user and move to the front of list of targets to be displayed first
+    current_target = ""
+    for target in user_targets:
+        if target.username == current_user.id:
+            current_target = target
+    if current_target != "":
+        user_targets.remove(current_target)
+        user_targets.insert(0, current_target)
+
     choices = [""]
-    hours_form.username.choices = choices + [row.username for row in Users.query.all()]
+    hours_form.username.choices = choices + [row.username for row in Users.query.all() if row.store_id == current_user.store_id]
     if target_form.validate_on_submit():
-        # EDIT EXISTING STORE TARGET BASED ON ADMIN LOGIN STORE ID
-        # CURRENTLY ONLY ABLE TO ADD NEW TARGET WITH NEW STORE ID
+        id = current_user.store_id
         new = target_form.new.data
         upgrades = target_form.upgrades.data
         broadband = target_form.broadband.data
         unlimited = target_form.unlimited.data
         insurance = target_form.new.data
         revenue = target_form.revenue.data
-
-        new_target = StoreTargets(new, upgrades, broadband, unlimited, insurance, revenue)
-        db.session.add(new_target)
+        # update target if current user target exists for corresponding store id
+        if StoreTargets.query.filter_by(id=current_user.store_id).first():
+            update_target = StoreTargets.query.filter_by(id=current_user.store_id).first()
+            update_target.new = new
+            update_target.upgrades = upgrades
+            update_target.broadband = broadband
+            update_target.unlimited = unlimited
+            update_target.insurance = insurance
+            update_target.revenue = revenue
+        # else create new target
+        else:
+            new_target = StoreTargets(id, new, upgrades, broadband, unlimited, insurance, revenue)
+            db.session.add(new_target)
         db.session.commit()
         calc_targets()
         return redirect(url_for("targets"))
@@ -312,7 +331,12 @@ def sales():
     # blank default value
     choices = [""]
     # set comprehension for unique values converted to list
-    sales_form.username.choices = choices + [row.username for row in Users.query.all()]
+    # if admin, show usernames for those with same store id
+    if current_user.admin:
+        sales_form.username.choices = choices + [row.username for row in Users.query.all() if row.store_id == current_user.store_id]
+    # if not admin only show own username
+    else:
+        sales_form.username.choices = choices + [current_user.username]
     sales_form.device_name.choices = choices + list({row.device for row in Products.query.all()})
     sales_form.data_amount.choices = choices + list({row.data for row in Products.query.all()})
     sales_form.contract_length.choices = choices + list({row.length for row in Products.query.all()})
@@ -391,6 +415,7 @@ def get_sale():
 
 @app.route('/<int:sale_id>/delete_sale/', methods=["POST"])
 @login_required
+@admin_required
 def delete_sale(sale_id):
     deleted_sale = Sales.query.filter_by(id=sale_id).first()
     update_progress("delete", deleted_sale)

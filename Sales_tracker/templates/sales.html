@@ -257,23 +257,27 @@
 					  </tr>
 					</thead>
 					<tbody>
-					  {% for sale in all_sales %}
-						<tr>
-						  <td>{{ sale.users.username }}</td>
-						  <td>{{ sale.new }}</td>
-						  <td>{{ sale.product.device }}</td>
-						  <td>{{ sale.product.data }}GB</td>
-						  <td>{{ sale.product.length }} months</td>
-						  <td>£{{ sale.product.price|round(2) }}</td>
-						  <td>£{{ sale.product.revenue|round(2) }}</td>
-						  <td>£{{ sale.product.commission|round(2) }}</td>
-						  <td>{{ sale.discount }}</td>
-						  <td>{{ sale.insurance }}</td>
-							<td>
-							  <form method="POST" action="{{ url_for('delete_sale', sale_id=sale.id) }}">
-							  <button type="submit" onclick="return confirm('Are you sure you want to delete sale by {{sale}}?')"><i class="fa fa-trash"></i></button></form> </td>
-							  <td><button id="{{sale.id}}" onclick="add_id(this.id);"><i class="fa fa-pencil"></i></button></td>
-						</tr>
+					  {% for sale in all_sales if current_user.store_id == sale.users.store_id %}
+					  	{% if (not current_user.admin and sale.users.id == current_user.id) or (current_user.admin) %}
+							<tr>
+							  <td>{{ sale.users.username }}</td>
+							  <td>{{ sale.new }}</td>
+							  <td>{{ sale.product.device }}</td>
+							  <td>{{ sale.product.data }}GB</td>
+							  <td>{{ sale.product.length }} months</td>
+							  <td>£{{ sale.product.price|round(2) }}</td>
+							  <td>£{{ sale.product.revenue|round(2) }}</td>
+							  <td>£{{ sale.product.commission|round(2) }}</td>
+							  <td>{{ sale.discount }}</td>
+							  <td>{{ sale.insurance }}</td>
+								<td>
+									{% if current_user.admin %}
+										<form method="POST" action="{{ url_for('delete_sale', sale_id=sale.id) }}">
+										<button type="submit" onclick="return confirm('Are you sure you want to delete sale by {{sale}}?')"><i class="fa fa-trash"></i></button></form> </td>
+									{% endif %}
+								  <td><button id="{{sale.id}}" onclick="add_id(this.id);"><i class="fa fa-pencil"></i></button></td>
+							</tr>
+					  	{% endif %}
 					  {% endfor %}
 					<script>
 						function add_id(button_id){

@@ -16,7 +16,8 @@ class StoreTargets(db.Model):
     ind_targets = db.relationship('Targets', backref='store_targets', lazy='dynamic')
     store_progress = db.relationship('StoreProgress', backref='store_progress', uselist=False)
 
-    def __init__(self, new, upgrades, broadband, unlimited, insurance, revenue):
+    def __init__(self, id, new, upgrades, broadband, unlimited, insurance, revenue):
+        self.id = id
         self.new = new
         self.upgrades = upgrades
         self.broadband = broadband
