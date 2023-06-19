@@ -49,7 +49,6 @@
 				<table id="data" class="table table-striped">
 					<thead>
 					  <tr>
-						<th>ID</th>
 						<th>User</th>
 						<th>New</th>
 						<th>Upgrades</th>
@@ -60,9 +59,8 @@
 					  </tr>
 					</thead>
 					<tbody>
-					  {% for store_target in store_targets %}
+					  {% for store_target in store_targets if current_user.store_id == store_target.id %}
 						<tr>
-						  <td>{{ store_target.id }}</td>
 						  <td>Store</td>
 						  <td>{{ store_target.store_progress.new }} / <b>{{ store_target.new }}</b></td>
 						  <td>{{ store_target.store_progress.upgrades }} / <b>{{ store_target.upgrades }}</b></td>
@@ -76,9 +74,8 @@
 							{% endif %}
 						</tr>
 					  {% endfor %}
-						{% for target in user_targets %}
+						{% for target in user_targets if current_user.store_id == target.store_id %}
 						<tr>
-						  <td>{{ target.store_id }}</td>
 						  <td>{{ target.user_target.username }}</td>
 						  <td>{{ target.user_progress.new }} / <b>{{ target.new }}</b></td>
 						  <td>{{ target.user_progress.upgrades }} / <b>{{ target.upgrades }}</b></td>

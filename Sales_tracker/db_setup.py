@@ -17,8 +17,9 @@ db.create_all()
 #
 user1 = Users("kennyh", "Kenny", "Harvey", generate_password_hash("Password"), "kenny@gmail.com", True, 1, 0)
 user2 = Users("alonal", "Alona", "Lonsdale", generate_password_hash("Password1"), "alona@gmail.com", False, 1, 0)
+user3 = Users("johnl", "John", "Love", generate_password_hash("Password"), "aa@gmail.com", True, 2, 0)
 #
-db.session.add_all([user2, user1])
+db.session.add_all([user2, user1, user3])
 #
 db.session.commit()
 
