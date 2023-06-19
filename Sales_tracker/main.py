@@ -1,6 +1,8 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
+import flask_login
+from flask import Flask, render_template, redirect, url_for, request, jsonify, flash, abort
 from flask_bootstrap import Bootstrap5
-from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from functools import wraps
 from db import db
 from forms import SalesForm, ProductsForm, HoursForm, TargetForm, LoginForm, UsersForm
 import os
@@ -36,10 +38,26 @@ lm = LoginManager()
 lm.login_view = "/"
 lm.init_app(app)
 
-#
+
 @lm.user_loader
 def load_user(user_id):
     return Users.query.filter_by(id=user_id).first()
+
+
+# decorator function to check user is admin before granting access
+def permission_required(user):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not user.admin:
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def admin_required(f):
+    return permission_required(current_user)(f)
 
 
 # basic route for login page - linking to html file
@@ -81,6 +99,7 @@ def logout():
 # route for users page
 @app.route('/users/', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def users():
     users_form = UsersForm()
     all_users = Users.query.all()
@@ -137,7 +156,7 @@ def users():
             # recalculate user targets
             calc_targets()
         return redirect(url_for("users"))
-    return render_template("users.html", users_form=users_form, all_users=all_users)
+    return render_template("users.html", users_form=users_form, all_users=all_users, admin=flask_login.current_user.admin)
 
 
 @app.route('/_getuser', methods=['POST'])
@@ -150,6 +169,7 @@ def get_user():
 # route for deleting selected user
 @app.route('/<int:user_id>/delete_user/', methods=["POST"])
 @login_required
+@admin_required
 def delete_user(user_id):
     Users.query.filter_by(id=user_id).delete()
     # when the user is deleted the target linked to the user is deleted and targets are then recalculated
@@ -162,6 +182,7 @@ def delete_user(user_id):
 # route for database page
 @app.route('/database/', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def database():
     products_form = ProductsForm()
     all_products = Products.query.all()
@@ -198,6 +219,7 @@ def get_product():
 
 @app.route('/<int:product_id>/delete_product/', methods=["POST"])
 @login_required
+@admin_required
 def delete_product(product_id):
     Products.query.filter_by(id=product_id).delete()
     db.session.commit()

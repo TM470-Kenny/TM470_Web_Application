@@ -29,8 +29,10 @@
 				<div class="text-center">
 					<h1 class="display-5 fw-bold">Sales Tracker Page</h1>
 					<p>
-						<a class="btn btn-lg btn-success" href="/users/" role="button">Users</a>
-                        <a class="btn btn-lg btn-success" href="/database/" role="button">Database</a>
+						{% if current_user.admin %}
+							<a class="btn btn-lg btn-success" href="/users/" role="button">Users</a>
+                        	<a class="btn btn-lg btn-success" href="/database/" role="button">Database</a>
+						{% endif %}
                         <a class="btn btn-lg btn-success" href="/targets/" role="button">Targets</a>
                         <a class="btn btn-lg btn-success" href="/sales/" role="button">Sales Tracker</a>
 					</p>
