@@ -28,19 +28,23 @@
 				<div class="text-center">
 					<h1 class="display-5 fw-bold">Targets Page</h1>
 					<p>
-						<a class="btn btn-lg btn-success" href="/users/" role="button">Users</a>
-                        <a class="btn btn-lg btn-success" href="/database/" role="button">Database</a>
+						{% if current_user.admin %}
+							<a class="btn btn-lg btn-success" href="/users/" role="button">Users</a>
+                        	<a class="btn btn-lg btn-success" href="/database/" role="button">Database</a>
+						{% endif %}
                         <a class="btn btn-lg btn-success" href="/targets/" role="button">Targets</a>
                         <a class="btn btn-lg btn-success" href="/sales/" role="button">Sales Tracker</a>
 					</p>
 				</div>
 			</div>
-			<div id="targets_form" class="p-2 mb-4 bg-light rounded-3">
-				{{ render_form(target_form) }}
-			</div>
-			<div id="hours_form" class="p-2 mb-4 bg-light rounded-3">
-				{{ render_form(hours_form) }}
-			</div>
+			{% if current_user.admin %}
+				<div id="targets_form" class="p-2 mb-4 bg-light rounded-3">
+					{{ render_form(target_form) }}
+				</div>
+				<div id="hours_form" class="p-2 mb-4 bg-light rounded-3">
+					{{ render_form(hours_form) }}
+				</div>
+			{% endif %}
 			<div id="targets_list" class="p-2 mb-4 bg-light rounded-3">
 				<table id="data" class="table table-striped">
 					<thead>

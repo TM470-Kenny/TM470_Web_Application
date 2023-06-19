@@ -1,3 +1,5 @@
+from werkzeug.security import generate_password_hash
+
 from main import app
 from db import db
 from models.products import Products
@@ -13,12 +15,12 @@ db.create_all()
 # iphone = Products('iPhone 13', 20, 24, 59.99, 600, 3)
 # samsung = Products('Samsung A53', 100, 24, 25.00, 350, 2)
 #
-# user1 = Users("kennyh", "Kenny", "Harvey", "Password", "kenny@gmail.com", True, 1, 0)
-# user2 = Users("alonal", "Alona", "Lonsdale", "Password1", "alona@gmail.com", False, 1, 0)
+user1 = Users("kennyh", "Kenny", "Harvey", generate_password_hash("Password"), "kenny@gmail.com", True, 1, 0)
+user2 = Users("alonal", "Alona", "Lonsdale", generate_password_hash("Password1"), "alona@gmail.com", False, 1, 0)
 #
-# db.session.add_all([iphone, samsung, user2, user1])
+db.session.add_all([user2, user1])
 #
-# db.session.commit()
+db.session.commit()
 
 # first_sale = Sales(user1.id, True, iphone.id, 10, False)
 # second_sale = Sales(user2.id, True, iphone.id, 0, True)
