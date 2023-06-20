@@ -61,6 +61,22 @@ def admin_required(f):
     return permission_required(current_user)(f)
 
 
+# decorator to remove access if user is deleted
+def required(user):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if user.is_deleted:
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def active_required(f):
+    return required(current_user)(f)
+
+
 # basic route for login page - linking to html file
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -74,13 +90,16 @@ def login():
         # check password matches if user exists
         if user:
             if user.verify_password(password):
-                login_user(user)
+                if not user.is_deleted:
+                    login_user(user)
+                    if user.admin:
+                        return redirect(url_for('users'))
+                    else:
+                        return redirect(url_for('targets'))
+                else:
+                    flash("Inactive account")
                 # delete cookies after 1 hour to reset user login
                 app.config['PERMANENT_SESSION_LIFETIME'] = 3600
-                if user.admin:
-                    return redirect(url_for('users'))
-                else:
-                    return redirect(url_for('targets'))
             else:
                 flash("Incorrect password")
         # alert user if username does not exist
@@ -100,10 +119,11 @@ def logout():
 # route for users page
 @app.route('/users/', methods=['GET', 'POST'])
 @login_required
+@active_required
 @admin_required
 def users():
     users_form = UsersForm()
-    all_users = Users.query.all()
+    all_users = Users.query.filter_by(is_deleted=False).all()
     if users_form.validate_on_submit():
         firstname = users_form.firstname.data
         lastname = users_form.lastname.data
@@ -162,6 +182,7 @@ def users():
 
 @app.route('/_getuser', methods=['POST'])
 @login_required
+@active_required
 def get_user():
     user = Users.query.filter_by(id=request.get_json()["id"]).first()
     return jsonify({"firstname": user.firstname, "lastname": user.lastname, "email": user.email, "admin": user.admin, "store": user.store_id})
@@ -170,9 +191,10 @@ def get_user():
 # route for deleting selected user
 @app.route('/<int:user_id>/delete_user/', methods=["POST"])
 @login_required
+@active_required
 @admin_required
 def delete_user(user_id):
-    Users.query.filter_by(id=user_id).delete()
+    Users.query.filter_by(id=user_id).first().is_deleted = True
     # when the user is deleted the target linked to the user is deleted and targets are then recalculated
     Targets.query.filter_by(username=user_id).delete()
     db.session.commit()
@@ -183,10 +205,11 @@ def delete_user(user_id):
 # route for database page
 @app.route('/database/', methods=['GET', 'POST'])
 @login_required
+@active_required
 @admin_required
 def database():
     products_form = ProductsForm()
-    all_products = Products.query.all()
+    all_products = Products.query.filter_by(is_deleted=False).all()
     if products_form.validate_on_submit():
         device = products_form.device_name.data
         data = products_form.data_amount.data
@@ -213,6 +236,7 @@ def database():
 
 @app.route('/_getproduct', methods=['POST'])
 @login_required
+@active_required
 def get_product():
     product = Products.query.filter_by(id=request.get_json()["id"]).first()
     return jsonify({"device": product.device, "data": product.data, "length": product.length, "price": round(product.price, 2), "revenue": round(product.revenue, 2), "commission": round(product.commission, 2)})
@@ -220,9 +244,10 @@ def get_product():
 
 @app.route('/<int:product_id>/delete_product/', methods=["POST"])
 @login_required
+@active_required
 @admin_required
 def delete_product(product_id):
-    Products.query.filter_by(id=product_id).delete()
+    Products.query.filter_by(id=product_id).first().is_deleted = True
     db.session.commit()
     return redirect(url_for("database"))
 
@@ -230,6 +255,7 @@ def delete_product(product_id):
 # route for targets page
 @app.route('/targets/', methods=['GET', 'POST'])
 @login_required
+@active_required
 def targets():
     target_form = TargetForm()
     hours_form = HoursForm()
@@ -246,7 +272,7 @@ def targets():
         user_targets.insert(0, current_target)
 
     choices = [""]
-    hours_form.username.choices = choices + [row.username for row in Users.query.all() if row.store_id == current_user.store_id]
+    hours_form.username.choices = choices + [row.username for row in Users.query.filter_by(store_id=current_user.store_id, is_deleted=False).all()]
     if target_form.validate_on_submit():
         id = current_user.store_id
         new = target_form.new.data
@@ -285,11 +311,10 @@ def targets():
 def calc_targets():
     store_targets = StoreTargets.query.all()
     user_targets = Targets.query.all()
-
     # for each store id
     for store in store_targets:
         total_hours = 0
-        store_users = Users.query.filter_by(store_id=store.id).all()
+        store_users = Users.query.filter_by(store_id=store.id, is_deleted=False).all()
         for user in store_users:
             # calculate total num hours
             total_hours += user.hours_working
@@ -325,6 +350,7 @@ def calc_targets():
 # route for sales tracker page
 @app.route('/sales/', methods=['GET', 'POST'])
 @login_required
+@active_required
 def sales():
     all_sales = Sales.query.all()
 
@@ -334,14 +360,14 @@ def sales():
     # set comprehension for unique values converted to list
     # if admin, show usernames for those with same store id
     if current_user.admin:
-        sales_form.username.choices = choices + [row.username for row in Users.query.all() if row.store_id == current_user.store_id]
+        sales_form.username.choices = choices + [row.username for row in Users.query.filter_by(store_id=current_user.store_id, is_deleted=False).all()]
     # if not admin only show own username
     else:
         sales_form.username.choices = choices + [current_user.username]
-    sales_form.device_name.choices = choices + list({row.device for row in Products.query.all()})
-    sales_form.data_amount.choices = choices + list({row.data for row in Products.query.all()})
-    sales_form.contract_length.choices = choices + list({row.length for row in Products.query.all()})
-    sales_form.price.choices = choices + list({round(row.price, 2) for row in Products.query.all()})
+    sales_form.device_name.choices = choices + list({row.device for row in Products.query.filter_by(is_deleted=False).all()})
+    sales_form.data_amount.choices = choices + list({row.data for row in Products.query.filter_by(is_deleted=False).all()})
+    sales_form.contract_length.choices = choices + list({row.length for row in Products.query.filter_by(is_deleted=False).all()})
+    sales_form.price.choices = choices + list({round(row.price, 2) for row in Products.query.filter_by(is_deleted=False).all()})
     if request.method == "GET":
         return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
     if sales_form.validate_on_submit():
@@ -383,6 +409,7 @@ def sales():
 
 @app.route('/_updatesalesdrop', methods=['POST'])
 @login_required
+@active_required
 def update_sales_drop():
     filters = list()
     # append the filter for the form field if it is not empty
@@ -395,21 +422,22 @@ def update_sales_drop():
     if request.get_json()['price'] != "":
         filters.append(Products.price == request.get_json()['price'])
     # unpack the list to filter the query
-    device = list({row.device for row in Products.query.filter(db.and_(*filters)).all()})
-    data = list({row.data for row in Products.query.filter(db.and_(*filters)).all()})
-    length = list({row.length for row in Products.query.filter(db.and_(*filters)).all()})
-    price = list({round(row.price,2) for row in Products.query.filter(db.and_(*filters)).all()})
+    device = list({row.device for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted})
+    data = list({row.data for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted})
+    length = list({row.length for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted})
+    price = list({round(row.price,2) for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted})
     # check if all values are "" by converting to set, to remove duplicates, and checking length
     if len({request.get_json()['device'], request.get_json()['data'], request.get_json()['length'],
             request.get_json()['price']}) == 1:
-        device = list({row.device for row in Products.query.all()})
-        data = list({row.data for row in Products.query.all()})
-        length = list({row.length for row in Products.query.all()})
-        price = list({round(row.price, 2) for row in Products.query.all()})
+        device = list({row.device for row in Products.query.filter_by(is_deleted=False).all()})
+        data = list({row.data for row in Products.query.filter_by(is_deleted=False).all()})
+        length = list({row.length for row in Products.query.filter_by(is_deleted=False).all()})
+        price = list({round(row.price, 2) for row in Products.query.filter_by(is_deleted=False).all()})
     return jsonify({"device": device, "data": data, "length": length, "price": price})
 
 @app.route('/_getsale', methods=['POST'])
 @login_required
+@active_required
 def get_sale():
     sale = Sales.query.filter_by(id=request.get_json()["id"]).first()
     user = Users.query.filter_by(id=sale.user).first()
@@ -419,6 +447,7 @@ def get_sale():
 
 @app.route('/<int:sale_id>/delete_sale/', methods=["POST"])
 @login_required
+@active_required
 @admin_required
 def delete_sale(sale_id):
     deleted_sale = Sales.query.filter_by(id=sale_id).first()

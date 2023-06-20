@@ -16,6 +16,7 @@ class Users(UserMixin, db.Model):
     admin = db.Column(db.Boolean, nullable=False)
     store_id = db.Column(db.Integer)
     hours_working = db.Column(db.Integer)
+    is_deleted = db.Column(db.Boolean, default=False)
 
     user_sales = db.relationship('Sales', backref='users', lazy='dynamic')
     # One to One relationship for user and target/progress
@@ -30,6 +31,7 @@ class Users(UserMixin, db.Model):
         self.admin = admin
         self.store_id = store_id
         self.hours_working = hours
+        self.is_deleted = False
 
     def __repr__(self):
         return f'{self.firstname} {self.lastname} has username: {self.username}'
