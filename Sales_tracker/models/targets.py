@@ -73,8 +73,9 @@ class Progress(db.Model):
     unlimited = db.Column(db.Integer, nullable=False)
     insurance = db.Column(db.Integer, nullable=False)
     revenue = db.Column(db.Numeric, nullable=False)
+    commission  = db.Column(db.Numeric, nullable=False)
 
-    def __init__(self, username, new, upgrades, broadband, unlimited, insurance, revenue):
+    def __init__(self, username, new, upgrades, broadband, unlimited, insurance, revenue, commission):
         self.username = username
         self.new = new
         self.upgrades = upgrades
@@ -82,6 +83,7 @@ class Progress(db.Model):
         self.unlimited = unlimited
         self.insurance = insurance
         self.revenue = revenue
+        self.commission = commission
 
     def __repr__(self):
         return f'User {self.username} has sold new:{self.new}, upgrades: {self.upgrades}, broadband: {self.broadband}' \

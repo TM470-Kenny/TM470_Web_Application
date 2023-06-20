@@ -249,9 +249,9 @@
 						<th>Contract Length</th>
 						<th>Price</th>
 						<th>Revenue</th>
-						<th>Commission</th>
 						<th>Discount</th>
 						<th>Insurance</th>
+					    <th>Commission</th>
 						  <th></th>
 						  <th></th>
 					  </tr>
@@ -267,9 +267,9 @@
 							  <td>{{ sale.product.length }} months</td>
 							  <td>£{{ sale.product.price|round(2) }}</td>
 							  <td>£{{ sale.product.revenue|round(2) }}</td>
-							  <td>£{{ sale.product.commission|round(2) }}</td>
 							  <td>{{ sale.discount }}</td>
 							  <td>{{ sale.insurance }}</td>
+								<td>£{{ sale.commission|round(2) }}</td>
 								<td>
 									{% if current_user.admin %}
 										<form method="POST" action="{{ url_for('delete_sale', sale_id=sale.id) }}">
