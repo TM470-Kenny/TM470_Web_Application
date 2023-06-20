@@ -56,6 +56,7 @@
 						<th>Unlimited</th>
 						<th>Insurance</th>
 						<th>Revenue</th>
+					    <th>Commission</th>
 					  </tr>
 					</thead>
 					<tbody>
@@ -72,6 +73,7 @@
 							{% else %}
 							<td> / <b>£{{ store_target.revenue|round(2) }}</b></td>
 							{% endif %}
+						  <td></td>
 						</tr>
 					  {% endfor %}
 						{% for target in user_targets if current_user.store_id == target.store_id %}
@@ -87,6 +89,11 @@
 							{% else %}
 							<td> / <b>£{{ target.revenue|round(2) }}</b></td>
 							{% endif %}
+						  {% if target.user_progress.revenue is defined %}
+						  <td>£{{ target.user_progress.commission|round(2) }}</td>
+						  {% else %}
+						  <td>£0.00</td>
+						  {% endif %}
 						</tr>
 					  {% endfor %}
 					</tbody>

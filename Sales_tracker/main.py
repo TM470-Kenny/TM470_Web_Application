@@ -9,6 +9,7 @@ import os
 import secrets
 import string
 from werkzeug.security import generate_password_hash
+from decimal import Decimal
 
 from models.products import Products
 from models.sales import Sales
@@ -355,13 +356,15 @@ def sales():
         insurance = sales_form.insurance.data
         broadband = sales_form.broadband.data
         # find the product id in products table from details input in form
-        product_id = Products.query.filter(db.and_(Products.device == device, Products.data == data,
-                                                   Products.length == length, Products.price == price)).first().id
-
+        product = Products.query.filter(db.and_(Products.device == device, Products.data == data,
+                                                Products.length == length, Products.price == price)).first()
+        product_id = product.id
+        commission = product.commission
         # find the user if in users table from username input in form
         user = Users.query.filter_by(username=username).first().id
         if sales_form.sale_id.data == "":
-            new_sale = Sales(user, new, product_id, discount, insurance)
+            new_sale = Sales(user, new, product_id, discount, insurance, commission)
+            new_sale.commission = calc_commission(new_sale)
             db.session.add(new_sale)
             db.session.commit()
             update_progress("add", new_sale)
@@ -373,6 +376,7 @@ def sales():
             update_sale.product_id = product_id
             update_sale.discount = discount
             update_sale.insurance = insurance
+            update_sale.commission = calc_commission(update_sale)
             update_progress("add", update_sale)
             db.session.commit()
     return redirect(url_for("sales"))
@@ -423,6 +427,22 @@ def delete_sale(sale_id):
     db.session.commit()
     return redirect(url_for("sales"))
 
+
+def calc_commission(sale):
+    product = Products.query.filter_by(id=sale.product_id).first()
+    commission_calc = product.commission
+    if sale.new:
+        commission_calc += 1
+    if product.data == 999:
+        commission_calc += 2
+    if product.length == 36:
+        commission_calc += 1
+    if sale.insurance != "None":
+        commission_calc += 1
+    if sale.discount != 0:
+        commission_calc = commission_calc - (commission_calc * (Decimal(sale.discount) / 100))
+    return commission_calc
+
 def update_progress(sale_func, sale):
     # if user has not made a sale yet
     if Progress.query.filter_by(username=sale.user).first() is None:
@@ -446,7 +466,7 @@ def update_progress(sale_func, sale):
         else:
             insurance = 1
 
-        new_progress = Progress(sale.user, new, upgrades, 0, unlimited, insurance, revenue=Products.query.filter_by(id=sale.product_id).first().revenue)
+        new_progress = Progress(sale.user, new, upgrades, 0, unlimited, insurance, Products.query.filter_by(id=sale.product_id).first().revenue, sale.commission)
         db.session.add(new_progress)
         db.session.commit()
     # if user has made a sale
@@ -463,6 +483,7 @@ def update_progress(sale_func, sale):
             if sale.insurance != "None":
                 user_progress.insurance -= 1
             user_progress.revenue -= Products.query.filter_by(id=sale.product_id).first().revenue
+            user_progress.commission -= sale.commission
         # if sale is being added, add to progress where required
         if sale_func == "add":
             if sale.new:
@@ -478,6 +499,7 @@ def update_progress(sale_func, sale):
                 user_progress.insurance += 1
 
             user_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
+            user_progress.commission += sale.commission
         db.session.commit()
 
 
