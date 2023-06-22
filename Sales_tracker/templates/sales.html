@@ -281,6 +281,14 @@
 					  {% endfor %}
 					<script>
 						function add_id(button_id){
+							document.getElementById("select_device").value  = "";
+							document.getElementById("select_data").value  = "";
+							document.getElementById("select_length").value  = "";
+							document.getElementById("select_price").value  = "";
+							update_device();
+							setTimeout(add, 100, button_id);
+						}
+						function add(button_id){
 							document.getElementById("sale_id").value = button_id;
 							fetch('/_getsale', {
 						headers : {
@@ -295,9 +303,13 @@
 							document.getElementById("select_user").value = data["username"];
 							document.getElementById("new_up").checked = data["new"];
 							document.getElementById("select_device").value = data["device"];
+							update_device();
 							document.getElementById("select_data").value = data["data"];
+							update_data();
 							document.getElementById("select_length").value = data["length"];
+							update_length();
 							document.getElementById("select_price").value = data["price"];
+							update_price();
 							document.getElementById("discount").value = data["discount"];
 							document.getElementById("insurance").value = data["insurance"];
 						});
