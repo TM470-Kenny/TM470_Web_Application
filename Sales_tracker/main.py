@@ -90,6 +90,7 @@ def login():
         # check password matches if user exists
         if user:
             if user.verify_password(password):
+                app.config['PERMANENT_SESSION_LIFETIME'] = 3600
                 if not user.is_deleted:
                     login_user(user)
                     if user.admin:
@@ -99,7 +100,6 @@ def login():
                 else:
                     flash("Inactive account")
                 # delete cookies after 1 hour to reset user login
-                app.config['PERMANENT_SESSION_LIFETIME'] = 3600
             else:
                 flash("Incorrect password")
         # alert user if username does not exist
@@ -211,6 +211,7 @@ def database():
     products_form = ProductsForm()
     all_products = Products.query.filter_by(is_deleted=False).all()
     if products_form.validate_on_submit():
+        broadband = products_form.broadband_name.data
         device = products_form.device_name.data
         data = products_form.data_amount.data
         length = products_form.contract_length.data
@@ -218,11 +219,12 @@ def database():
         revenue = products_form.revenue.data
         commission = products_form.commission.data
         if products_form.product_id.data == "":
-            new_product = Products(device, data, length, price, revenue, commission)
+            new_product = Products(device, broadband, data, length, price, revenue, commission)
             db.session.add(new_product)
             db.session.commit()
         else:
             update_product = Products.query.filter_by(id=products_form.product_id.data).first()
+            update_product.broadband = broadband
             update_product.device = device
             update_product.data = data
             update_product.length = length
@@ -239,7 +241,7 @@ def database():
 @active_required
 def get_product():
     product = Products.query.filter_by(id=request.get_json()["id"]).first()
-    return jsonify({"device": product.device, "data": product.data, "length": product.length, "price": round(product.price, 2), "revenue": round(product.revenue, 2), "commission": round(product.commission, 2)})
+    return jsonify({"device": product.device, "broadband": product.broadband, "data": product.data, "length": product.length, "price": round(product.price, 2), "revenue": round(product.revenue, 2), "commission": round(product.commission, 2)})
 
 
 @app.route('/<int:product_id>/delete_product/', methods=["POST"])
@@ -364,26 +366,33 @@ def sales():
     # if not admin only show own username
     else:
         sales_form.username.choices = choices + [current_user.username]
-    sales_form.device_name.choices = choices + list({row.device for row in Products.query.filter_by(is_deleted=False).all()})
-    sales_form.data_amount.choices = choices + list({row.data for row in Products.query.filter_by(is_deleted=False).all()})
+    sales_form.device_name.choices = choices + list({row.device for row in Products.query.filter_by(is_deleted=False).all() if row.device != ""})
+    sales_form.broadband.choices = choices + list({row.broadband for row in Products.query.filter_by(is_deleted=False).all() if row.broadband != ""})
+    sales_form.data_amount.choices = choices + list({row.data for row in Products.query.filter_by(is_deleted=False).all() if row.data != None})
     sales_form.contract_length.choices = choices + list({row.length for row in Products.query.filter_by(is_deleted=False).all()})
     sales_form.price.choices = choices + list({round(row.price, 2) for row in Products.query.filter_by(is_deleted=False).all()})
     if request.method == "GET":
         return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
     if sales_form.validate_on_submit():
         username = sales_form.username.data
-        new = sales_form.new_up.data
         sale_type = sales_form.sale_type.data
+        new = sales_form.new_up.data
         device = sales_form.device_name.data
+        broadband = sales_form.broadband.data
         data = sales_form.data_amount.data
         length = sales_form.contract_length.data
         price = sales_form.price.data
         discount = 0 if sales_form.discount.data is None else sales_form.discount.data
         insurance = sales_form.insurance.data
-        broadband = sales_form.broadband.data
         # find the product id in products table from details input in form
-        product = Products.query.filter(db.and_(Products.device == device, Products.data == data,
-                                                Products.length == length, Products.price == price)).first()
+        if broadband != "":
+            product = Products.query.filter(db.and_(Products.device == device, Products.broadband == broadband,
+                                                    Products.data == None, Products.length == length,
+                                                    Products.price == price)).first()
+        else:
+            product = Products.query.filter(db.and_(Products.device == device, Products.broadband == broadband,
+                                                Products.data == data, Products.length == length,
+                                                Products.price == price)).first()
         product_id = product.id
         commission = product.commission
         # find the user if in users table from username input in form
@@ -442,7 +451,7 @@ def get_sale():
     sale = Sales.query.filter_by(id=request.get_json()["id"]).first()
     user = Users.query.filter_by(id=sale.user).first()
     product = Products.query.filter_by(id=sale.product_id).first()
-    return jsonify({"username": user.username, "new": sale.new, "device": product.device, "data": product.data, "length": product.length, "price": round(product.price, 2), "discount": sale.discount, "insurance": sale.insurance})
+    return jsonify({"username": user.username, "new": sale.new, "device": product.device, "broadband": product.broadband, "data": product.data, "length": product.length, "price": round(product.price, 2), "discount": sale.discount, "insurance": sale.insurance})
 
 
 @app.route('/<int:sale_id>/delete_sale/', methods=["POST"])

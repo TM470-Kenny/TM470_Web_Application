@@ -39,10 +39,82 @@
 			<div id="products_form" class="p-2 mb-4 bg-light rounded-3">
 				{{ render_form(products_form) }}
 			</div>
+			<script>
+				window.onload = formView()
+				type = document.getElementById("product")
+				type.addEventListener("change", formView);
+				function formView(){
+					if (product.value == ""){
+						device.style.display = 'none';
+						device.labels[0].style.display = 'none';
+						amount.style.display = 'none';
+						amount.labels[0].style.display = 'none';
+						bb.style.display = 'none';
+						bb.labels[0].style.display = 'none';
+						contract.style.display = 'none';
+						contract.labels[0].style.display = 'none';
+						price.style.display = 'none';
+						price.labels[0].style.display = 'none';
+						rev.style.display = 'none';
+						rev.labels[0].style.display = 'none';
+						comm.style.display = 'none';
+						comm.labels[0].style.display = 'none';
+					}
+					if (product.value == "Sim Only"){
+						device.style.display = 'none';
+						device.labels[0].style.display = 'none';
+						amount.style.display = 'block';
+						amount.labels[0].style.display = 'block';
+						bb.style.display = 'none';
+						bb.labels[0].style.display = 'none';
+						contract.style.display = 'block';
+						contract.labels[0].style.display = 'block';
+						price.style.display = 'block';
+						price.labels[0].style.display = 'block';
+						rev.style.display = 'block';
+						rev.labels[0].style.display = 'block';
+						comm.style.display = 'block';
+						comm.labels[0].style.display = 'block';
+					}
+					if (product.value == "Broadband"){
+						device.style.display = 'none';
+						device.labels[0].style.display = 'none';
+						amount.style.display = 'none';
+						amount.labels[0].style.display = 'none';
+						bb.style.display = 'block';
+						bb.labels[0].style.display = 'block';
+						contract.style.display = 'block';
+						contract.labels[0].style.display = 'block';
+						price.style.display = 'block';
+						price.labels[0].style.display = 'block';
+						rev.style.display = 'block';
+						rev.labels[0].style.display = 'block';
+						comm.style.display = 'block';
+						comm.labels[0].style.display = 'block';
+					}
+					if (product.value == "Device"){
+						device.style.display = 'block';
+						device.labels[0].style.display = 'block';
+						amount.style.display = 'block';
+						amount.labels[0].style.display = 'block';
+						bb.style.display = 'none';
+						bb.labels[0].style.display = 'none';
+						contract.style.display = 'block';
+						contract.labels[0].style.display = 'block';
+						price.style.display = 'block';
+						price.labels[0].style.display = 'block';
+						rev.style.display = 'block';
+						rev.labels[0].style.display = 'block';
+						comm.style.display = 'block';
+						comm.labels[0].style.display = 'block';
+					}
+				}
+			</script>
 			<div id="products_list" class="p-2 mb-4 bg-light rounded-3">
 				<table id="data" class="table table-striped">
 					<thead>
 					  <tr>
+						  <th>Broadband</th>
 						<th>Device</th>
 						<th>Data</th>
 						<th>Contract length</th>
@@ -56,8 +128,23 @@
 					<tbody>
 					  {% for product in all_products %}
 						<tr>
-						  <td>{{ product.device }}</td>
-						  <td>{{ product.data }}GB</td>
+							{% if product.broadband == "" %}
+								<td>-</td>
+							{% else %}
+								<td>{{ product.broadband }}</td>
+							{% endif %}
+						  {% if product.device == "" %}
+								<td>-</td>
+							{% else %}
+								<td>{{ product.device }}</td>
+							{% endif %}
+						  {% if product.data == None %}
+								<td>-</td>
+							{% elif product.data == 999 %}
+								<td>Unlimited</td>
+							{% else %}
+								<td>{{ product.data }}GB</td>
+							{% endif %}
 						  <td>{{ product.length }} months</td>
 						  <td>£{{ product.price|round(2) }}</td>
 						  <td>£{{ product.revenue|round(2) }}</td>
@@ -81,12 +168,25 @@
 						})
 					}).then(function(response) {
 						response.json().then(function(data) {
-							document.getElementById("device_name").value = data["device"];
-							document.getElementById("data_amount").value = data["data"];
-							document.getElementById("contract_length").value = data["length"];
-							document.getElementById("price").value = data["price"];
-							document.getElementById("revenue").value = data["revenue"];
-							document.getElementById("commission").value = data["commission"];
+							if (data["broadband"] != "") {
+								document.getElementById("product").value = "Broadband"
+								formView()
+							}
+							else if (data["device"] != "") {
+								document.getElementById("product").value = "Device"
+								formView()
+							}
+							else {
+								document.getElementById("product").value = "Sim Only"
+								formView()
+							}
+							bb.value = data["broadband"];
+							device.value = data["device"];
+							amount.value = data["data"];
+							contract.value = data["length"];
+							price.value = data["price"];
+							rev.value = data["revenue"];
+							comm.value = data["commission"];
 						});
 					});
 
