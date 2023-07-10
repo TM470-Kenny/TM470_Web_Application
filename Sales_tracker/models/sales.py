@@ -10,9 +10,9 @@ class Sales(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     new = db.Column(db.Boolean, nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
     discount = db.Column(db.Integer)
-    insurance = db.Column(db.Text)
+    insurance = db.Column(db.Text, nullable=True)
     commission = db.Column(db.Numeric, nullable=False)
 
     def __init__(self, user, new, product_id, discount, insurance, commission):

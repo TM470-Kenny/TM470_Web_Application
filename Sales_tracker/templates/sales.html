@@ -238,12 +238,92 @@
 				}
 			</script>
 			</div>
+			<script>
+				window.onload = formView()
+				type = document.getElementById("types")
+				type.addEventListener("change", formView);
+				function formView(){
+					if (types.value == ""){
+						select_device.style.display = 'none';
+						select_device.labels[0].style.display = 'none';
+						select_data.style.display = 'none';
+						select_data.labels[0].style.display = 'none';
+						bb.style.display = 'none';
+						bb.labels[0].style.display = 'none';
+						new_choice.style.display = 'none';
+						new_choice.labels[0].style.display = 'none';
+						select_length.style.display = 'none';
+						select_length.labels[0].style.display = 'none';
+						select_price.style.display = 'none';
+						select_price.labels[0].style.display = 'none';
+						disc.style.display = 'none';
+						disc.labels[0].style.display = 'none';
+						ins.style.display = 'none';
+						ins.labels[0].style.display = 'none';
+					}
+					if (types.value == "Sim Only"){
+						select_device.style.display = 'none';
+						select_device.labels[0].style.display = 'none';
+						select_data.style.display = 'block';
+						select_data.labels[0].style.display = 'block';
+						bb.style.display = 'none';
+						bb.labels[0].style.display = 'none';
+						new_choice.style.display = 'block';
+						new_choice.labels[0].style.display = 'block';
+						select_length.style.display = 'block';
+						select_length.labels[0].style.display = 'block';
+						select_price.style.display = 'block';
+						select_price.labels[0].style.display = 'block';
+						disc.style.display = 'block';
+						disc.labels[0].style.display = 'block';
+						ins.style.display = 'block';
+						ins.labels[0].style.display = 'block';
+					}
+					if (types.value == "Broadband"){
+						select_device.style.display = 'none';
+						select_device.labels[0].style.display = 'none';
+						select_data.style.display = 'none';
+						select_data.labels[0].style.display = 'none';
+						bb.style.display = 'block';
+						bb.labels[0].style.display = 'block';
+						new_choice.style.display = 'block';
+						new_choice.labels[0].style.display = 'block';
+						select_length.style.display = 'block';
+						select_length.labels[0].style.display = 'block';
+						select_price.style.display = 'block';
+						select_price.labels[0].style.display = 'block';
+						disc.style.display = 'block';
+						disc.labels[0].style.display = 'block';
+						ins.style.display = 'none';
+						ins.labels[0].style.display = 'none';
+					}
+					if (types.value == "Device"){
+						select_device.style.display = 'block';
+						select_device.labels[0].style.display = 'block';
+						select_data.style.display = 'block';
+						select_data.labels[0].style.display = 'block';
+						bb.style.display = 'none';
+						bb.labels[0].style.display = 'none';
+						new_choice.style.display = 'block';
+						new_choice.labels[0].style.display = 'block';
+						select_length.style.display = 'block';
+						select_length.labels[0].style.display = 'block';
+						select_price.style.display = 'block';
+						select_price.labels[0].style.display = 'block';
+						disc.style.display = 'block';
+						disc.labels[0].style.display = 'block';
+						ins.style.display = 'block';
+						ins.labels[0].style.display = 'block';
+					}
+				}
+			</script>
 			<div id="sales_list" class="p-2 mb-4 bg-light rounded-3">
 				<table id="data" class="table table-striped">
 					<thead>
 					  <tr>
 						<th>Username</th>
 						<th>New</th>
+						  <th>Broadband</th>
 						<th>Device</th>
 						<th>Data</th>
 						<th>Contract Length</th>
@@ -262,13 +342,32 @@
 							<tr>
 							  <td>{{ sale.users.username }}</td>
 							  <td>{{ sale.new }}</td>
-							  <td>{{ sale.product.device }}</td>
-							  <td>{{ sale.product.data }}GB</td>
+								{% if sale.product.broadband == "" %}
+									<td>-</td>
+								{% else %}
+									<td>{{ sale.product.broadband }}</td>
+								{% endif %}
+							  	{% if sale.product.device == "" %}
+									<td>-</td>
+								{% else %}
+									<td>{{ sale.product.device }}</td>
+								{% endif %}
+							  	{% if sale.product.data == None %}
+									<td>-</td>
+								{% elif sale.product.data == 999 %}
+									<td>Unlimited</td>
+								{% else %}
+									<td>{{ sale.product.data }}GB</td>
+								{% endif %}
 							  <td>{{ sale.product.length }} months</td>
 							  <td>£{{ sale.product.price|round(2) }}</td>
 							  <td>£{{ sale.product.revenue|round(2) }}</td>
 							  <td>{{ sale.discount }}</td>
-							  <td>{{ sale.insurance }}</td>
+							  	{% if sale.product.device == "" %}
+									<td>-</td>
+								{% else %}
+									<td>{{ sale.insurance }}</td>
+								{% endif %}
 								<td>£{{ sale.commission|round(2) }}</td>
 								<td>
 									{% if current_user.admin %}
@@ -300,18 +399,31 @@
 						})
 					}).then(function(response) {
 						response.json().then(function(data) {
-							document.getElementById("select_user").value = data["username"];
-							document.getElementById("new_up").checked = data["new"];
-							document.getElementById("select_device").value = data["device"];
+							if (data["broadband"] != "") {
+								document.getElementById("types").value = "Broadband"
+								formView()
+							}
+							else if (data["device"] != "") {
+								document.getElementById("types").value = "Device"
+								formView()
+							}
+							else {
+								document.getElementById("types").value = "Sim Only"
+								formView()
+							}
+							bb.value = data["broadband"]
+							select_user.value = data["username"];
+							new_choice.checked = data["new"];
+							select_device.value = data["device"];
 							update_device();
-							document.getElementById("select_data").value = data["data"];
+							select_data.value = data["data"];
 							update_data();
-							document.getElementById("select_length").value = data["length"];
+							select_length.value = data["length"];
 							update_length();
-							document.getElementById("select_price").value = data["price"];
+							select_price.value = data["price"];
 							update_price();
-							document.getElementById("discount").value = data["discount"];
-							document.getElementById("insurance").value = data["insurance"];
+							disc.value = data["discount"];
+							ins.value = data["insurance"];
 						});
 					});
 
@@ -325,7 +437,6 @@
 				<p>&copy; Kenny Harvey 2023</p>
 
 			</footer>
-
 		</div>
 </body>
 </html>

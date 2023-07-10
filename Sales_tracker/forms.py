@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField, ValidationError, HiddenField
 from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms.validators import DataRequired, NumberRange, InputRequired, Email
+from wtforms.validators import DataRequired, NumberRange, InputRequired, Email, Optional
 
 from models.products import Products
 from models.users import Users
@@ -12,32 +12,34 @@ class SalesForm(FlaskForm):
     # set as current logged in user - admin can change
     sale_id = HiddenField(id="sale_id")
     username = SelectField('Username:', validators=[DataRequired()], id='select_user')
-    new_up = BooleanField('New?')
-    sale_type = SelectField('Sale Type:', validators=[DataRequired()], choices=['Device', 'Sim', 'Broadband'])
+    sale_type = SelectField('Sale Type:', validators=[DataRequired()], choices=["", 'Device', 'Sim Only', 'Broadband'], id="types")
     # visible upon choosing device
-    device_name = SelectField('Device Name:', validators=[DataRequired()], id='select_device')
-    data_amount = SelectField('Data Amount:', validators=[DataRequired()], id='select_data')
+    new_up = BooleanField('New?', id="new_choice")
+    device_name = SelectField('Device Name:', id='select_device')
+    data_amount = SelectField('Data Amount:', id='select_data')
+    broadband = SelectField('Broadband Type:', id="bb")
     contract_length = SelectField('Contract Length:', validators=[DataRequired()], id='select_length')
     # price dependent on data and device selected
     price = SelectField('Price:', validators=[DataRequired()], id='select_price')
-    discount = SelectField('Discount:', validators=[DataRequired()], choices=[0, 5, 10, 15, 20])
+    discount = SelectField('Discount:', validators=[DataRequired()], choices=[0, 5, 10, 15, 20], id="disc")
     # visible upon choosing device
     insurance = SelectField('Insurance:', validators=[DataRequired()], choices=['None', 'Tier 1 Damage', 'Tier 1 Full', 'Tier 2 Damage'
-                            , 'Tier 2 Full'])
+                            , 'Tier 2 Full'], id="ins")
     # visible upon choosing broadband
-    broadband = SelectField('Broadband Type:', validators=[DataRequired()], choices=['Copper', 'Fibre 1', 'Fibre 2', 'Full Fibre'])
     submit = SubmitField('Submit')
 
 
 # form design for sales tracker form
 class ProductsForm(FlaskForm):
     product_id = HiddenField(id='product_id')
-    device_name = StringField('Device Name:', validators=[DataRequired()])
-    data_amount = IntegerField('Data Amount:', validators=[DataRequired()])
-    contract_length = SelectField('Contract Length:', choices=['', 12, 24, 36], validators=[DataRequired()])
-    price = DecimalField('Price:', validators=[DataRequired()])
-    revenue = DecimalField('Revenue:', validators=[DataRequired()])
-    commission = DecimalField('Commission:', validators=[DataRequired()])
+    product_type = SelectField('Product type:', choices=['', 'Device', 'Sim Only', 'Broadband'], validators=[DataRequired()], id='product')
+    device_name = StringField('Device Name:', id='device')
+    broadband_name = StringField('Broadband plan:', id='bb')
+    data_amount = IntegerField('Data Amount:', id='amount', validators=[Optional()])
+    contract_length = SelectField('Contract Length:', choices=['', 12, 24, 36], validators=[DataRequired()], id='contract')
+    price = DecimalField('Price:', validators=[DataRequired()], id='price')
+    revenue = DecimalField('Revenue:', validators=[DataRequired()], id='rev')
+    commission = DecimalField('Commission:', validators=[DataRequired()], id='comm')
     submit = SubmitField('Submit')
 
 
