@@ -41,201 +41,204 @@
 			<div id="sales_form" class="p-2 mb-4 bg-light rounded-3">
 				{{ render_form(sales_form) }}
 			<script>
-				device_select = document.getElementById("select_device")
-				data_select = document.getElementById("select_data")
-				length_select = document.getElementById("select_length")
-				price_select = document.getElementById("select_price")
-				device_select.addEventListener("change", update_device);
-				data_select.addEventListener("change", update_data);
-				length_select.addEventListener("change", update_length);
-				price_select.addEventListener("change", update_price);
-				function update_device(){
-					device_val = device_select.value
-					data_val = data_select.value
-					length_val = length_select.value
-					price_val = price_select.value
-					fetch('/_updatesalesdrop', {
-						headers : {
-							'Content-Type' : 'application/json'
-						},
-						method : 'POST',
-						body : JSON.stringify( {
-							'device' : device_val,
-							'data' : data_val,
-							'length' : length_val,
-							'price' : price_val
-						})
-					}).then(function(response) {
-						response.json().then(function(data) {
-							options = '<option value></option>';
-							for (data_amount of data["data"]) {
-								options += '<option value="' + data_amount + '">' + data_amount + '</option>';
-							}
-							select_data.innerHTML = options;
-							data_select.value = data_val
-							options = '<option value></option>';
-							for (length of data["length"]) {
-								options += '<option value="' + length + '">' + length + '</option>';
-							}
-							select_length.innerHTML = options;
-							length_select.value = length_val
-							options = '<option value></option>';
-							for (price of data["price"]) {
-								options += '<option value="' + price + '">' + price + '</option>';
-							}
-							select_price.innerHTML = options;
-							price_select.value = price_val
-							if (device_val == "") {
-								options = '<option value></option>';
-								for (device of data["device"]) {
-								options += '<option value="' + device + '">' + device + '</option>';
-								}
-								select_device.innerHTML = options;
-							}
-						});
-					});
-				}
 
-				function update_data(){
-					device_val = device_select.value
-					data_val = data_select.value
-					length_val = length_select.value
-					price_val = price_select.value
-					fetch('/_updatesalesdrop', {
-						headers : {
-							'Content-Type' : 'application/json'
-						},
-						method : 'POST',
-						body : JSON.stringify( {
-							'device' : device_val,
-							'data' : data_val,
-							'length' : length_val,
-							'price' : price_val
-						})
-					}).then(function(response) {
-						response.json().then(function(data) {
-							options = '<option value></option>';
-							for (device of data["device"]) {
-								options += '<option value="' + device + '">' + device + '</option>';
-							}
-							select_device.innerHTML = options;
-							device_select.value = device_val
-							options = '<option value></option>';
-							for (length of data["length"]) {
-								options += '<option value="' + length + '">' + length + '</option>';
-							}
-							select_length.innerHTML = options;
-							length_select.value = length_val
-							options = '<option value></option>';
-							for (price of data["price"]) {
-								options += '<option value="' + price + '">' + price + '</option>';
-							}
-							select_price.innerHTML = options;
-							price_select.value = price_val
-							if (data_val == "") {
-								options = '<option value></option>';
-								for (data_amount of data["data"]) {
-								options += '<option value="' + data_amount + '">' + data_amount + '</option>';
-								}
-								select_data.innerHTML = options;
-							}
-						});
-					});
-				}
+			</script>
+			<script>
+<!--				device_select = document.getElementById("select_device")-->
+<!--				data_select = document.getElementById("select_data")-->
+<!--				length_select = document.getElementById("select_length")-->
+<!--				price_select = document.getElementById("select_price")-->
+<!--				device_select.addEventListener("change", update_device);-->
+<!--				data_select.addEventListener("change", update_data);-->
+<!--				length_select.addEventListener("change", update_length);-->
+<!--				price_select.addEventListener("change", update_price);-->
+<!--				function update_device(){-->
+<!--					device_val = device_select.value-->
+<!--					data_val = data_select.value-->
+<!--					length_val = length_select.value-->
+<!--					price_val = price_select.value-->
+<!--					fetch('/_updatesalesdrop', {-->
+<!--						headers : {-->
+<!--							'Content-Type' : 'application/json'-->
+<!--						},-->
+<!--						method : 'POST',-->
+<!--						body : JSON.stringify( {-->
+<!--							'device' : device_val,-->
+<!--							'data' : data_val,-->
+<!--							'length' : length_val,-->
+<!--							'price' : price_val-->
+<!--						})-->
+<!--					}).then(function(response) {-->
+<!--						response.json().then(function(data) {-->
+<!--							options = '<option value></option>';-->
+<!--							for (data_amount of data["data"]) {-->
+<!--								options += '<option value="' + data_amount + '">' + data_amount + '</option>';-->
+<!--							}-->
+<!--							select_data.innerHTML = options;-->
+<!--							data_select.value = data_val-->
+<!--							options = '<option value></option>';-->
+<!--							for (length of data["length"]) {-->
+<!--								options += '<option value="' + length + '">' + length + '</option>';-->
+<!--							}-->
+<!--							select_length.innerHTML = options;-->
+<!--							length_select.value = length_val-->
+<!--							options = '<option value></option>';-->
+<!--							for (price of data["price"]) {-->
+<!--								options += '<option value="' + price + '">' + price + '</option>';-->
+<!--							}-->
+<!--							select_price.innerHTML = options;-->
+<!--							price_select.value = price_val-->
+<!--							if (device_val == "") {-->
+<!--								options = '<option value></option>';-->
+<!--								for (device of data["device"]) {-->
+<!--								options += '<option value="' + device + '">' + device + '</option>';-->
+<!--								}-->
+<!--								select_device.innerHTML = options;-->
+<!--							}-->
+<!--						});-->
+<!--					});-->
+<!--				}-->
 
-				function update_length(){
-					device_val = device_select.value
-					data_val = data_select.value
-					length_val = length_select.value
-					price_val = price_select.value
-					fetch('/_updatesalesdrop', {
-						headers : {
-							'Content-Type' : 'application/json'
-						},
-						method : 'POST',
-						body : JSON.stringify( {
-							'device' : device_val,
-							'data' : data_val,
-							'length' : length_val,
-							'price' : price_val
-						})
-					}).then(function(response) {
-						response.json().then(function(data) {
-							options = '<option value></option>';
-							for (device of data["device"]) {
-								options += '<option value="' + device + '">' + device + '</option>';
-							}
-							select_device.innerHTML = options;
-							device_select.value = device_val
-							options = '<option value></option>';
-							for (data_amount of data["data"]) {
-								options += '<option value="' + data_amount + '">' + data_amount + '</option>';
-							}
-							select_data.innerHTML = options;
-							options = '<option value></option>';
-							for (price of data["price"]) {
-								options += '<option value="' + price + '">' + price + '</option>';
-							}
-							select_price.innerHTML = options;
-							price_select.value = price_val
-							data_select.value = data_val
-							if (length_val == "") {
-								options = '<option value></option>';
-								for (length of data["length"]) {
-								options += '<option value="' + length + '">' + length + '</option>';
-								}
-								select_length.innerHTML = options;
-							}
-						});
-					});
-				}
+<!--				function update_data(){-->
+<!--					device_val = device_select.value-->
+<!--					data_val = data_select.value-->
+<!--					length_val = length_select.value-->
+<!--					price_val = price_select.value-->
+<!--					fetch('/_updatesalesdrop', {-->
+<!--						headers : {-->
+<!--							'Content-Type' : 'application/json'-->
+<!--						},-->
+<!--						method : 'POST',-->
+<!--						body : JSON.stringify( {-->
+<!--							'device' : device_val,-->
+<!--							'data' : data_val,-->
+<!--							'length' : length_val,-->
+<!--							'price' : price_val-->
+<!--						})-->
+<!--					}).then(function(response) {-->
+<!--						response.json().then(function(data) {-->
+<!--							options = '<option value></option>';-->
+<!--							for (device of data["device"]) {-->
+<!--								options += '<option value="' + device + '">' + device + '</option>';-->
+<!--							}-->
+<!--							select_device.innerHTML = options;-->
+<!--							device_select.value = device_val-->
+<!--							options = '<option value></option>';-->
+<!--							for (length of data["length"]) {-->
+<!--								options += '<option value="' + length + '">' + length + '</option>';-->
+<!--							}-->
+<!--							select_length.innerHTML = options;-->
+<!--							length_select.value = length_val-->
+<!--							options = '<option value></option>';-->
+<!--							for (price of data["price"]) {-->
+<!--								options += '<option value="' + price + '">' + price + '</option>';-->
+<!--							}-->
+<!--							select_price.innerHTML = options;-->
+<!--							price_select.value = price_val-->
+<!--							if (data_val == "") {-->
+<!--								options = '<option value></option>';-->
+<!--								for (data_amount of data["data"]) {-->
+<!--								options += '<option value="' + data_amount + '">' + data_amount + '</option>';-->
+<!--								}-->
+<!--								select_data.innerHTML = options;-->
+<!--							}-->
+<!--						});-->
+<!--					});-->
+<!--				}-->
 
-				function update_price(){
-					device_val = device_select.value
-					data_val = data_select.value
-					length_val = length_select.value
-					price_val = price_select.value
-					fetch('/_updatesalesdrop', {
-						headers : {
-							'Content-Type' : 'application/json'
-						},
-						method : 'POST',
-						body : JSON.stringify( {
-							'device' : device_val,
-							'data' : data_val,
-							'length' : length_val,
-							'price' : price_val
-						})
-					}).then(function(response) {
-						response.json().then(function(data) {
-							options = '<option value></option>';
-							for (device of data["device"]) {
-								options += '<option value="' + device + '">' + device + '</option>';
-							}
-							select_device.innerHTML = options;
-							options = '<option value></option>';
-							device_select.value = device_val
-							for (data_amount of data["data"]) {
-								options += '<option value="' + data_amount + '">' + data_amount + '</option>';
-							}
-							select_data.innerHTML = options;
-							options = '<option value></option>';
-							for (length of data["length"]) {
-								options += '<option value="' + length + '">' + length + '</option>';
-							}
-							select_length.innerHTML = options;
-							length_select.value = length_val
-							data_select.value = data_val
-							if (price_val == "") {
-								options = '<option value></option>';
-								for (price of data["price"]) {
-								options += '<option value="' + price + '">' + price + '</option>';
-								}
-								select_price.innerHTML = options;
-							}
-						});
-					});
-				}
+<!--				function update_length(){-->
+<!--					device_val = device_select.value-->
+<!--					data_val = data_select.value-->
+<!--					length_val = length_select.value-->
+<!--					price_val = price_select.value-->
+<!--					fetch('/_updatesalesdrop', {-->
+<!--						headers : {-->
+<!--							'Content-Type' : 'application/json'-->
+<!--						},-->
+<!--						method : 'POST',-->
+<!--						body : JSON.stringify( {-->
+<!--							'device' : device_val,-->
+<!--							'data' : data_val,-->
+<!--							'length' : length_val,-->
+<!--							'price' : price_val-->
+<!--						})-->
+<!--					}).then(function(response) {-->
+<!--						response.json().then(function(data) {-->
+<!--							options = '<option value></option>';-->
+<!--							for (device of data["device"]) {-->
+<!--								options += '<option value="' + device + '">' + device + '</option>';-->
+<!--							}-->
+<!--							select_device.innerHTML = options;-->
+<!--							device_select.value = device_val-->
+<!--							options = '<option value></option>';-->
+<!--							for (data_amount of data["data"]) {-->
+<!--								options += '<option value="' + data_amount + '">' + data_amount + '</option>';-->
+<!--							}-->
+<!--							select_data.innerHTML = options;-->
+<!--							options = '<option value></option>';-->
+<!--							for (price of data["price"]) {-->
+<!--								options += '<option value="' + price + '">' + price + '</option>';-->
+<!--							}-->
+<!--							select_price.innerHTML = options;-->
+<!--							price_select.value = price_val-->
+<!--							data_select.value = data_val-->
+<!--							if (length_val == "") {-->
+<!--								options = '<option value></option>';-->
+<!--								for (length of data["length"]) {-->
+<!--								options += '<option value="' + length + '">' + length + '</option>';-->
+<!--								}-->
+<!--								select_length.innerHTML = options;-->
+<!--							}-->
+<!--						});-->
+<!--					});-->
+<!--				}-->
+
+<!--				function update_price(){-->
+<!--					device_val = device_select.value-->
+<!--					data_val = data_select.value-->
+<!--					length_val = length_select.value-->
+<!--					price_val = price_select.value-->
+<!--					fetch('/_updatesalesdrop', {-->
+<!--						headers : {-->
+<!--							'Content-Type' : 'application/json'-->
+<!--						},-->
+<!--						method : 'POST',-->
+<!--						body : JSON.stringify( {-->
+<!--							'device' : device_val,-->
+<!--							'data' : data_val,-->
+<!--							'length' : length_val,-->
+<!--							'price' : price_val-->
+<!--						})-->
+<!--					}).then(function(response) {-->
+<!--						response.json().then(function(data) {-->
+<!--							options = '<option value></option>';-->
+<!--							for (device of data["device"]) {-->
+<!--								options += '<option value="' + device + '">' + device + '</option>';-->
+<!--							}-->
+<!--							select_device.innerHTML = options;-->
+<!--							options = '<option value></option>';-->
+<!--							device_select.value = device_val-->
+<!--							for (data_amount of data["data"]) {-->
+<!--								options += '<option value="' + data_amount + '">' + data_amount + '</option>';-->
+<!--							}-->
+<!--							select_data.innerHTML = options;-->
+<!--							options = '<option value></option>';-->
+<!--							for (length of data["length"]) {-->
+<!--								options += '<option value="' + length + '">' + length + '</option>';-->
+<!--							}-->
+<!--							select_length.innerHTML = options;-->
+<!--							length_select.value = length_val-->
+<!--							data_select.value = data_val-->
+<!--							if (price_val == "") {-->
+<!--								options = '<option value></option>';-->
+<!--								for (price of data["price"]) {-->
+<!--								options += '<option value="' + price + '">' + price + '</option>';-->
+<!--								}-->
+<!--								select_price.innerHTML = options;-->
+<!--							}-->
+<!--						});-->
+<!--					});-->
+<!--				}-->
 			</script>
 			</div>
 			<script>
@@ -246,76 +249,182 @@
 					if (types.value == ""){
 						select_device.style.display = 'none';
 						select_device.labels[0].style.display = 'none';
+						select_device.value = "";
 						select_data.style.display = 'none';
 						select_data.labels[0].style.display = 'none';
+						select_data.value = "";
 						bb.style.display = 'none';
 						bb.labels[0].style.display = 'none';
+						bb.value = "";
 						new_choice.style.display = 'none';
 						new_choice.labels[0].style.display = 'none';
+						new_choice.checked = false;
 						select_length.style.display = 'none';
 						select_length.labels[0].style.display = 'none';
+						select_length.value = "";
 						select_price.style.display = 'none';
 						select_price.labels[0].style.display = 'none';
+						select_price.value = "";
 						disc.style.display = 'none';
 						disc.labels[0].style.display = 'none';
+						disc.value = 0;
 						ins.style.display = 'none';
 						ins.labels[0].style.display = 'none';
+						ins.value = "None";
 					}
 					if (types.value == "Sim Only"){
 						select_device.style.display = 'none';
 						select_device.labels[0].style.display = 'none';
+						select_device.value = "";
 						select_data.style.display = 'block';
 						select_data.labels[0].style.display = 'block';
+						select_data.value = "";
 						bb.style.display = 'none';
 						bb.labels[0].style.display = 'none';
+						bb.value = "";
 						new_choice.style.display = 'block';
 						new_choice.labels[0].style.display = 'block';
+						new_choice.checked = false;
 						select_length.style.display = 'block';
 						select_length.labels[0].style.display = 'block';
+						select_length.value = "";
 						select_price.style.display = 'block';
 						select_price.labels[0].style.display = 'block';
+						select_price.value = "";
 						disc.style.display = 'block';
 						disc.labels[0].style.display = 'block';
+						disc.value = 0;
 						ins.style.display = 'block';
 						ins.labels[0].style.display = 'block';
+						ins.value = "None";
 					}
 					if (types.value == "Broadband"){
 						select_device.style.display = 'none';
 						select_device.labels[0].style.display = 'none';
+						select_device.value = "";
 						select_data.style.display = 'none';
 						select_data.labels[0].style.display = 'none';
+						select_data.value = "";
 						bb.style.display = 'block';
 						bb.labels[0].style.display = 'block';
+						bb.value = "";
 						new_choice.style.display = 'block';
 						new_choice.labels[0].style.display = 'block';
+						new_choice.checked = false;
 						select_length.style.display = 'block';
 						select_length.labels[0].style.display = 'block';
+						select_length.value = "";
 						select_price.style.display = 'block';
 						select_price.labels[0].style.display = 'block';
+						select_price.value = "";
 						disc.style.display = 'block';
 						disc.labels[0].style.display = 'block';
+						disc.value = 0;
 						ins.style.display = 'none';
 						ins.labels[0].style.display = 'none';
+						ins.value = "None";
 					}
 					if (types.value == "Device"){
 						select_device.style.display = 'block';
 						select_device.labels[0].style.display = 'block';
+						select_device.value = "";
 						select_data.style.display = 'block';
 						select_data.labels[0].style.display = 'block';
+						select_data.value = "";
 						bb.style.display = 'none';
 						bb.labels[0].style.display = 'none';
+						bb.value = "";
 						new_choice.style.display = 'block';
 						new_choice.labels[0].style.display = 'block';
+						new_choice.checked = false;
 						select_length.style.display = 'block';
 						select_length.labels[0].style.display = 'block';
+						select_length.value = "";
 						select_price.style.display = 'block';
 						select_price.labels[0].style.display = 'block';
+						select_price.value = "";
 						disc.style.display = 'block';
 						disc.labels[0].style.display = 'block';
+						disc.value = 0;
 						ins.style.display = 'block';
 						ins.labels[0].style.display = 'block';
+						ins.value = "None";
 					}
 				}
+				types.addEventListener("change", function () {update_form("")});
+				bb.addEventListener("change", function () {update_form("bb")})
+				select_device.addEventListener("change", function () {update_form("device")})
+				select_data.addEventListener("change", function () {update_form("data")});
+				select_length.addEventListener("change", function () {update_form("length")});
+				select_price.addEventListener("change", function () {update_form("price")});
+					function update_form(changed){
+						sale_type = types.value
+						device_val = select_device.value
+						bb_val = bb.value
+						data_val = select_data.value
+						length_val = select_length.value
+						price_val = select_price.value
+						fetch('/_updatesalesdrop', {
+							headers : {
+								'Content-Type' : 'application/json'
+							},
+							method : 'POST',
+							body : JSON.stringify( {
+								'type' : sale_type,
+								'device' : device_val,
+								'bb' : bb_val,
+								'data' : data_val,
+								'length' : length_val,
+								'price' : price_val
+							})
+						}).then(function(response) {
+							response.json().then(function(data) {
+								if (changed != "bb" || bb_val == ""){
+									options = '<option value></option>';
+									for (broadb of data["bb"]) {
+										options += '<option value="' + broadb + '">' + broadb + '</option>';
+									}
+									bb.innerHTML = options;
+									bb.value = bb_val
+								}
+								if (changed != "data" || data_val == ""){
+									options = '<option value></option>';
+									for (data_amount of data["data"]) {
+										options += '<option value="' + data_amount + '">' + data_amount + '</option>';
+									}
+									select_data.innerHTML = options;
+									select_data.value = data_val
+								}
+								if (changed != "length" || length_val == ""){
+									options = '<option value></option>';
+									for (length of data["length"]) {
+										options += '<option value="' + length + '">' + length + '</option>';
+									}
+									select_length.innerHTML = options;
+									select_length.value = length_val
+								}
+								if (changed != "price" || price_val == ""){
+									options = '<option value></option>';
+									for (price of data["price"]) {
+										options += '<option value="' + price + '">' + price + '</option>';
+									}
+									select_price.innerHTML = options;
+									select_price.value = price_val
+								}
+								if (changed != "device" || device_val == ""){
+									options = '<option value></option>';
+									for (device of data["device"]) {
+										options += '<option value="' + device + '">' + device + '</option>';
+									}
+									select_device.innerHTML = options;
+									if (changed != "device"){
+									select_device.value = device_val
+									}
+								}
+							});
+						});
+
+					}
 			</script>
 			<div id="sales_list" class="p-2 mb-4 bg-light rounded-3">
 				<table id="data" class="table table-striped">
@@ -380,12 +489,14 @@
 					  {% endfor %}
 					<script>
 						function add_id(button_id){
-							document.getElementById("select_device").value  = "";
-							document.getElementById("select_data").value  = "";
-							document.getElementById("select_length").value  = "";
-							document.getElementById("select_price").value  = "";
-							update_device();
-							setTimeout(add, 100, button_id);
+							type.value = "";
+							select_device.value  = "";
+							bb.value  = "";
+							select_data.value  = "";
+							select_length.value  = "";
+							select_price.value  = "";
+							update_form("");
+							setTimeout(add, 1000, button_id);
 						}
 						function add(button_id){
 							document.getElementById("sale_id").value = button_id;
@@ -397,7 +508,7 @@
 						body : JSON.stringify( {
 							'id' : button_id,
 						})
-					}).then(function(response) {
+					}).then(function(response){
 						response.json().then(function(data) {
 							if (data["broadband"] != "") {
 								document.getElementById("types").value = "Broadband"
@@ -411,23 +522,19 @@
 								document.getElementById("types").value = "Sim Only"
 								formView()
 							}
-							bb.value = data["broadband"]
 							select_user.value = data["username"];
 							new_choice.checked = data["new"];
+							bb.value = data["broadband"]
 							select_device.value = data["device"];
-							update_device();
 							select_data.value = data["data"];
-							update_data();
 							select_length.value = data["length"];
-							update_length();
 							select_price.value = data["price"];
-							update_price();
 							disc.value = data["discount"];
 							ins.value = data["insurance"];
+							update_form("");
 						});
 					});
-
-						}
+					}
 					</script>
 					</tbody>
 			  	</table>
