@@ -17,7 +17,9 @@ samsung = Products('Samsung A53', "", 100, 24, 25.00, 200, 2)
 samsung1 = Products('Samsung S22', "", 999, 36, 65, 300, 2)
 iphone1 = Products('iPhone 13', "", 999, 24, 89, 310, 3)
 moto = Products('Moto G50', "", 2, 24, 18.00, 80, 2)
-db.session.add_all([iphone, samsung, samsung1, iphone1, moto])
+bb = Products('', "Superfast 1", None, 24, 18.00, 80, 2)
+sim = Products('', "", 1, 24, 11.00, 80, 2)
+db.session.add_all([iphone, samsung, samsung1, iphone1, moto, bb, sim])
 #
 db.session.commit()
 
