@@ -420,29 +420,55 @@ def sales():
 @login_required
 @active_required
 def update_sales_drop():
+    print(request.get_json())
     filters = list()
-    # append the filter for the form field if it is not empty
-    if request.get_json()['device'] != "":
-        filters.append(Products.device == request.get_json()['device'])
-    if request.get_json()['data'] != "":
-        filters.append(Products.data == request.get_json()['data'])
-    if request.get_json()['length'] != "":
-        filters.append(Products.length == request.get_json()['length'])
-    if request.get_json()['price'] != "":
-        filters.append(Products.price == request.get_json()['price'])
-    # unpack the list to filter the query
-    device = list({row.device for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted})
-    data = list({row.data for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted})
-    length = list({row.length for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted})
-    price = list({round(row.price,2) for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted})
+    device = list()
+    bb = list()
+    data = list()
+    length = list()
+    price = list()
     # check if all values are "" by converting to set, to remove duplicates, and checking length
-    if len({request.get_json()['device'], request.get_json()['data'], request.get_json()['length'],
+    if len({request.get_json()['type'], request.get_json()['device'], request.get_json()['bb'],
+            request.get_json()['data'], request.get_json()['length'],
             request.get_json()['price']}) == 1:
+        bb = list({row.broadband for row in Products.query.filter_by(is_deleted=False).all()})
         device = list({row.device for row in Products.query.filter_by(is_deleted=False).all()})
         data = list({row.data for row in Products.query.filter_by(is_deleted=False).all()})
         length = list({row.length for row in Products.query.filter_by(is_deleted=False).all()})
         price = list({round(row.price, 2) for row in Products.query.filter_by(is_deleted=False).all()})
-    return jsonify({"device": device, "data": data, "length": length, "price": price})
+    else:
+        print("NOT EMPTY")
+        # append the filter for the form field if it is not empty
+        if request.get_json()['device'] != "" and request.get_json()['type'] != "Broadband" and request.get_json()['type'] != "Sim Only":
+            filters.append(Products.device == request.get_json()['device'])
+        if request.get_json()['bb'] != "" and request.get_json()['type'] != "Sim Only" and request.get_json()['type'] != "Device":
+            filters.append(Products.broadband == request.get_json()['bb'])
+        if request.get_json()['data'] != "" and request.get_json()['type'] != "Broadband":
+            filters.append(Products.data == request.get_json()['data'])
+        if request.get_json()['length'] != "":
+            filters.append(Products.length == request.get_json()['length'])
+        if request.get_json()['price'] != "":
+            filters.append(Products.price == request.get_json()['price'])
+        # append filters based on sale type
+        if request.get_json()['type'] == "Broadband":
+            bb = list({row.broadband for row in Products.query.filter(db.and_(*filters)).all() if
+                           not row.is_deleted and row.broadband != ""})
+            length = list({row.length for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted and row.broadband != ""})
+            price = list({round(row.price, 2) for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted and row.broadband != ""})
+        if request.get_json()['type'] == "Device":
+            device = list({row.device for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted and row.device != ""})
+            data = list({row.data for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted and row.device != ""})
+            length = list({row.length for row in Products.query.filter(db.and_(*filters)).all() if
+                           not row.is_deleted and row.device != ""})
+            price = list({round(row.price, 2) for row in Products.query.filter(db.and_(*filters)).all() if
+                          not row.is_deleted and row.device != ""})
+        if request.get_json()['type'] == "Sim Only":
+            data = list({row.data for row in Products.query.filter(db.and_(*filters)).all() if not row.is_deleted and row.device == "" and row.broadband == ""})
+            length = list({row.length for row in Products.query.filter(db.and_(*filters)).all() if
+                           not row.is_deleted and row.device == "" and row.broadband == ""})
+            price = list({round(row.price, 2) for row in Products.query.filter(db.and_(*filters)).all() if
+                          not row.is_deleted and row.device == "" and row.broadband == ""})
+    return jsonify({"device": device, "bb": bb, "data": data, "length": length, "price": price})
 
 @app.route('/_getsale', methods=['POST'])
 @login_required
