@@ -24,4 +24,4 @@ class Sales(db.Model):
         self.commission = commission
 
     def __repr__(self):
-        return f'{Users.query.filter_by(id=self.user).first().username} of product {Products.query.filter_by(id=self.product_id).first().device} with {self.discount}% discount and {self.insurance} insurance'
+        return f'Sale by {Users.query.filter_by(id=self.user).first().username} of product with id {Products.query.filter_by(id=self.product_id).first().id} with {self.discount}% discount and {self.insurance} insurance'

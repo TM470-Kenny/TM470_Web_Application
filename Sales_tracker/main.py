@@ -224,6 +224,9 @@ def database():
             db.session.commit()
         else:
             update_product = Products.query.filter_by(id=products_form.product_id.data).first()
+            # delete all progress for sales linked to product selected
+            for sale in Sales.query.filter_by(product_id=update_product.id).all():
+                update_progress("delete", sale)
             update_product.broadband = broadband
             update_product.device = device
             update_product.data = data
@@ -232,6 +235,9 @@ def database():
             update_product.revenue = revenue
             update_product.commission = commission
             db.session.commit()
+            # update progress table based on updated product values
+            for sale in Sales.query.filter_by(product_id=update_product.id).all():
+                update_progress("add", sale)
         return redirect(url_for("database"))
     return render_template("database.html", products_form=products_form, all_products=all_products)
 
@@ -420,7 +426,6 @@ def sales():
 @login_required
 @active_required
 def update_sales_drop():
-    print(request.get_json())
     filters = list()
     device = list()
     bb = list()
@@ -437,7 +442,6 @@ def update_sales_drop():
         length = list({row.length for row in Products.query.filter_by(is_deleted=False).all()})
         price = list({round(row.price, 2) for row in Products.query.filter_by(is_deleted=False).all()})
     else:
-        print("NOT EMPTY")
         # append the filter for the form field if it is not empty
         if request.get_json()['device'] != "" and request.get_json()['type'] != "Broadband" and request.get_json()['type'] != "Sim Only":
             filters.append(Products.device == request.get_json()['device'])
@@ -497,6 +501,8 @@ def calc_commission(sale):
     commission_calc = product.commission
     if sale.new:
         commission_calc += 1
+        if product.broadband != "":
+            commission_calc += 2
     if product.data == 999:
         commission_calc += 2
     if product.length == 36:
@@ -510,14 +516,22 @@ def calc_commission(sale):
 def update_progress(sale_func, sale):
     # if user has not made a sale yet
     if Progress.query.filter_by(username=sale.user).first() is None:
-        # if new add 1 to new
-        if sale.new:
-            new = 1
-            upgrades = 0
-        # else add 1 to upgrades
+        if Products.query.filter_by(id=sale.product_id).first().broadband == "":
+            # if not broadband
+            broadband = 0
+            # if new add 1 to new
+            if sale.new:
+                new = 1
+                upgrades = 0
+            # else add 1 to upgrades
+            else:
+                new = 0
+                upgrades = 1
+        # if broadband new and upgrades do not count to target, only broadband
         else:
             new = 0
-            upgrades = 1
+            upgrades = 0
+            broadband = 1
         # if data = 999 (unlimited) add 1 to unlimited
         if Products.query.filter_by(id=sale.product_id).first().data == 999:
             unlimited = 1
@@ -530,18 +544,21 @@ def update_progress(sale_func, sale):
         else:
             insurance = 1
 
-        new_progress = Progress(sale.user, new, upgrades, 0, unlimited, insurance, Products.query.filter_by(id=sale.product_id).first().revenue, sale.commission)
+        new_progress = Progress(sale.user, new, upgrades, broadband, unlimited, insurance, Products.query.filter_by(id=sale.product_id).first().revenue, sale.commission)
         db.session.add(new_progress)
         db.session.commit()
-    # if user has made a sale
+    # if not users first sale
     else:
         user_progress = Progress.query.filter_by(username=sale.user).first()
         # if sale is being deleted, remove from progress where required
         if sale_func == "delete":
-            if sale.new:
-                user_progress.new -= 1
+            if Products.query.filter_by(id=sale.product_id).first().broadband == "":
+                if sale.new:
+                    user_progress.new -= 1
+                else:
+                    user_progress.upgrades -= 1
             else:
-                user_progress.upgrades -= 1
+                user_progress.broadband -= 1
             if Products.query.filter_by(id=sale.product_id).first().data == 999:
                 user_progress.unlimited -= 1
             if sale.insurance != "None":
@@ -550,11 +567,14 @@ def update_progress(sale_func, sale):
             user_progress.commission -= sale.commission
         # if sale is being added, add to progress where required
         if sale_func == "add":
-            if sale.new:
-                user_progress.new += 1
-            # else add 1 to upgrades
+            if Products.query.filter_by(id=sale.product_id).first().broadband == "":
+                if sale.new:
+                    user_progress.new += 1
+                # else add 1 to upgrades
+                else:
+                    user_progress.upgrades += 1
             else:
-                user_progress.upgrades += 1
+                user_progress.broadband += 1
             # if data = 999 (unlimited) add 1 to unlimited
             if Products.query.filter_by(id=sale.product_id).first().data == 999:
                 user_progress.unlimited += 1
@@ -569,7 +589,7 @@ def update_progress(sale_func, sale):
 
     # if no target add new store progress from first sale
     if StoreProgress.query.filter_by(store_id=Users.query.filter_by(id=sale.user).first().store_id).first() is None:
-        new_store_progress = StoreProgress(Users.query.filter_by(id=sale.user).first().store_id, new, upgrades, 0, unlimited, insurance,
+        new_store_progress = StoreProgress(Users.query.filter_by(id=sale.user).first().store_id, new, upgrades, broadband, unlimited, insurance,
                                 revenue=Products.query.filter_by(id=sale.product_id).first().revenue)
         db.session.add(new_store_progress)
         db.session.commit()
@@ -579,21 +599,27 @@ def update_progress(sale_func, sale):
         update_store_progress = StoreProgress.query.filter_by(store_id=storeid).first()
         # if sale is being deleted, remove from progress where required
         if sale_func == "delete":
-            if sale.new:
-                update_store_progress.new -= 1
+            if Products.query.filter_by(id=sale.product_id).first().broadband == "":
+                if sale.new:
+                    update_store_progress.new -= 1
+                else:
+                    update_store_progress.upgrades -= 1
             else:
-                update_store_progress.upgrades -= 1
+                update_store_progress.broadband -= 1
             if Products.query.filter_by(id=sale.product_id).first().data == 999:
                 update_store_progress.unlimited -= 1
             if sale.insurance != "None":
                 update_store_progress.insurance -= 1
             update_store_progress.revenue -= Products.query.filter_by(id=sale.product_id).first().revenue
         if sale_func == "add":
-            if sale.new:
-                update_store_progress.new += 1
-            # else add 1 to upgrades
+            if Products.query.filter_by(id=sale.product_id).first().broadband == "":
+                if sale.new:
+                    update_store_progress.new += 1
+                # else add 1 to upgrades
+                else:
+                    update_store_progress.upgrades += 1
             else:
-                update_store_progress.upgrades += 1
+                update_store_progress.broadband += 1
             # if data = 999 (unlimited) add 1 to unlimited
             if Products.query.filter_by(id=sale.product_id).first().data == 999:
                 update_store_progress.unlimited += 1
