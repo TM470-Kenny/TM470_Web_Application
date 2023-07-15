@@ -73,7 +73,7 @@ class Progress(db.Model):
     unlimited = db.Column(db.Integer, nullable=False)
     insurance = db.Column(db.Integer, nullable=False)
     revenue = db.Column(db.Numeric, nullable=False)
-    commission  = db.Column(db.Numeric, nullable=False)
+    commission = db.Column(db.Numeric, nullable=False)
 
     def __init__(self, username, new, upgrades, broadband, unlimited, insurance, revenue, commission):
         self.username = username
