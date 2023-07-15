@@ -1,10 +1,18 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField, ValidationError, HiddenField
-from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms.validators import DataRequired, NumberRange, InputRequired, Email, Optional
+from wtforms.validators import DataRequired, InputRequired, Email, Optional, StopValidation
 
-from models.products import Products
-from models.users import Users
+
+def multi_validate(form, field):
+    if form.sale_type.data == "Broadband":
+        if not form.broadband.data:
+            raise ValidationError("Broadband field required")
+    if form.sale_type.data == "Sim Only":
+        if not form.data_amount.data:
+            raise ValidationError("Data field required")
+    if form.sale_type.data == "Device":
+        if not form.data_amount.data or not form.device_name.data:
+            raise ValidationError(field.gettext("error"))
 
 
 # form design for sales tracker form
@@ -17,7 +25,7 @@ class SalesForm(FlaskForm):
     new_up = BooleanField('New?', id="new_choice")
     device_name = SelectField('Device Name:', id='select_device')
     data_amount = SelectField('Data Amount:', id='select_data')
-    broadband = SelectField('Broadband Type:', id="bb")
+    broadband = SelectField('Broadband Type:', id="bb", validators=[multi_validate])
     contract_length = SelectField('Contract Length:', validators=[DataRequired()], id='select_length')
     # price dependent on data and device selected
     price = SelectField('Price:', validators=[DataRequired()], id='select_price')
@@ -27,6 +35,7 @@ class SalesForm(FlaskForm):
                             , 'Tier 2 Full'], id="ins")
     # visible upon choosing broadband
     submit = SubmitField('Submit')
+
 
 
 # form design for sales tracker form
