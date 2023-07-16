@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, BooleanField, IntegerField, DecimalField, PasswordField, ValidationError, HiddenField
-from wtforms.validators import DataRequired, InputRequired, Email, Optional, StopValidation
+from wtforms.validators import DataRequired, InputRequired, Email, Optional
 
 
 def multi_validate(form, field):
@@ -23,8 +23,8 @@ class SalesForm(FlaskForm):
     sale_type = SelectField('Sale Type:', validators=[DataRequired()], choices=["", 'Device', 'Sim Only', 'Broadband'], id="types")
     # visible upon choosing device
     new_up = BooleanField('New?', id="new_choice")
-    device_name = SelectField('Device Name:', id='select_device')
-    data_amount = SelectField('Data Amount:', id='select_data')
+    device_name = SelectField('Device Name:', id='select_device', validators=[multi_validate])
+    data_amount = SelectField('Data Amount:', id='select_data', validators=[Optional(), multi_validate])
     broadband = SelectField('Broadband Type:', id="bb", validators=[multi_validate])
     contract_length = SelectField('Contract Length:', validators=[DataRequired()], id='select_length')
     # price dependent on data and device selected

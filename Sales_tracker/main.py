@@ -239,6 +239,7 @@ def database():
             # update progress table based on updated product values
             for sale in Sales.query.filter_by(product_id=update_product.id).all():
                 sale.commission = calc_commission(sale)
+                sale.revenue = calc_rev(sale)
                 db.session.commit()
                 update_progress("add", sale)
         return redirect(url_for("database"))
@@ -383,6 +384,11 @@ def sales():
     sales_form.price.choices = choices + list({round(row.price, 2) for row in Products.query.filter_by(is_deleted=False).all()})
     if request.method == "GET":
         return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
+    sales_form.validate()
+
+    print(sales_form.data_amount.errors)
+    print(sales_form.data_amount.data)
+
     if sales_form.validate_on_submit():
         username = sales_form.username.data
         sale_type = sales_form.sale_type.data
@@ -394,6 +400,7 @@ def sales():
         price = sales_form.price.data
         discount = 0 if sales_form.discount.data is None else sales_form.discount.data
         insurance = sales_form.insurance.data
+
         # find the product id in products table from details input in form
         if broadband != "":
             product = Products.query.filter(db.and_(Products.device == device, Products.broadband == broadband,
@@ -408,8 +415,9 @@ def sales():
         # find the user if in users table from username input in form
         user = Users.query.filter_by(username=username).first().id
         if sales_form.sale_id.data == "":
-            new_sale = Sales(user, new, product_id, discount, insurance, commission)
+            new_sale = Sales(user, new, product_id, product.revenue, discount, insurance, commission)
             new_sale.commission = calc_commission(new_sale)
+            new_sale.revenue = calc_rev(new_sale)
             db.session.add(new_sale)
             db.session.commit()
             update_progress("add", new_sale)
@@ -421,10 +429,13 @@ def sales():
             update_sale.product_id = product_id
             update_sale.discount = discount
             update_sale.insurance = insurance
-            update_sale.commission = calc_commission(update_sale)
-            update_progress("add", update_sale)
             db.session.commit()
+            update_sale.commission = calc_commission(update_sale)
+            update_sale.revenue = calc_rev(update_sale)
+            db.session.commit()
+            update_progress("add", update_sale)
     return redirect(url_for("sales"))
+
 
 @app.route('/_updatesalesdrop', methods=['POST'])
 @login_required
@@ -513,9 +524,26 @@ def calc_commission(sale):
         commission_calc += 1
     if sale.insurance != "None":
         commission_calc += 1
-    if sale.discount != 0:
+    if sale.discount != "0":
         commission_calc = commission_calc - (commission_calc * (Decimal(sale.discount) / 100))
     return commission_calc
+
+
+def calc_rev(sale):
+    product = Products.query.filter_by(id=sale.product_id).first()
+    revenue = product.revenue
+    new = 0
+    ins = 0
+    disc = 0
+    if sale.new:
+        new = (revenue * Decimal(1.2)) - revenue
+    if sale.insurance != "None":
+        ins = 30
+    if sale.discount != "0":
+        disc = (Decimal(revenue) * ((100 - Decimal(sale.discount)) / 100)) - revenue
+    total_rev = new + ins + disc + revenue
+    return total_rev
+
 
 def update_progress(sale_func, sale):
     user_target = Targets.query.filter_by(username=sale.user).first()
@@ -548,18 +576,19 @@ def update_progress(sale_func, sale):
         # else add 1 to insurance
         else:
             insurance = 1
-        new_progress = Progress(sale.user, new, upgrades, broadband, unlimited, insurance, Products.query.filter_by(id=sale.product_id).first().revenue, sale.commission)
+        new_progress = Progress(sale.user, new, upgrades, broadband, unlimited, insurance, sale.revenue, sale.commission)
 
-        if new_progress.broadband >= user_target.broadband:
-            new_progress.commission = new_progress.commission * Decimal(1.2)
-        if new_progress.new >= user_target.new:
-            new_progress.commission = new_progress.commission * Decimal(1.1)
-        if new_progress.upgrades >= user_target.upgrades:
-            new_progress.commission = new_progress.commission * Decimal(1.05)
-        if new_progress.unlimited >= user_target.unlimited:
-            new_progress.commission = new_progress.commission * Decimal(1.15)
-        if new_progress.insurance >= user_target.insurance:
-            new_progress.commission = new_progress.commission * Decimal(1.1)
+        if user_target:
+            if new_progress.broadband >= user_target.broadband:
+                new_progress.commission = new_progress.commission * Decimal(1.2)
+            if new_progress.new >= user_target.new:
+                new_progress.commission = new_progress.commission * Decimal(1.1)
+            if new_progress.upgrades >= user_target.upgrades:
+                new_progress.commission = new_progress.commission * Decimal(1.05)
+            if new_progress.unlimited >= user_target.unlimited:
+                new_progress.commission = new_progress.commission * Decimal(1.15)
+            if new_progress.insurance >= user_target.insurance:
+                new_progress.commission = new_progress.commission * Decimal(1.1)
 
         db.session.add(new_progress)
         db.session.commit()
@@ -567,16 +596,17 @@ def update_progress(sale_func, sale):
     else:
         user_progress = Progress.query.filter_by(username=sale.user).first()
         # check current progress to target
-        if user_progress.broadband >= user_target.broadband:
-            user_progress.commission = (user_progress.commission / 120) * 100
-        if user_progress.new >= user_target.new:
-            user_progress.commission = (user_progress.commission / 110) * 100
-        if user_progress.upgrades >= user_target.upgrades:
-            user_progress.commission = (user_progress.commission / 105) * 100
-        if user_progress.unlimited >= user_target.unlimited:
-            user_progress.commission = (user_progress.commission / 115) * 100
-        if user_progress.insurance >= user_target.insurance:
-            user_progress.commission = (user_progress.commission / 110) * 100
+        if user_target:
+            if user_progress.broadband >= user_target.broadband:
+                user_progress.commission = (user_progress.commission / 120) * 100
+            if user_progress.new >= user_target.new:
+                user_progress.commission = (user_progress.commission / 110) * 100
+            if user_progress.upgrades >= user_target.upgrades:
+                user_progress.commission = (user_progress.commission / 105) * 100
+            if user_progress.unlimited >= user_target.unlimited:
+                user_progress.commission = (user_progress.commission / 115) * 100
+            if user_progress.insurance >= user_target.insurance:
+                user_progress.commission = (user_progress.commission / 110) * 100
         # if sale is being deleted, remove from progress where required
         if sale_func == "delete":
             if Products.query.filter_by(id=sale.product_id).first().broadband == "":
@@ -590,19 +620,20 @@ def update_progress(sale_func, sale):
                 user_progress.unlimited -= 1
             if sale.insurance != "None":
                 user_progress.insurance -= 1
-            user_progress.revenue -= Products.query.filter_by(id=sale.product_id).first().revenue
+            user_progress.revenue -= sale.revenue
             user_progress.commission -= sale.commission
             # remove commission multipliers if put under target
-            if user_progress.broadband >= user_target.broadband:
-                user_progress.commission = user_progress.commission * Decimal(1.2)
-            if user_progress.new >= user_target.new:
-                user_progress.commission = user_progress.commission * Decimal(1.1)
-            if user_progress.upgrades >= user_target.upgrades:
-                user_progress.commission = user_progress.commission * Decimal(1.05)
-            if user_progress.unlimited >= user_target.unlimited:
-                user_progress.commission = user_progress.commission * Decimal(1.15)
-            if user_progress.insurance >= user_target.insurance:
-                user_progress.commission = user_progress.commission * Decimal(1.1)
+            if user_target:
+                if user_progress.broadband >= user_target.broadband:
+                    user_progress.commission = user_progress.commission * Decimal(1.2)
+                if user_progress.new >= user_target.new:
+                    user_progress.commission = user_progress.commission * Decimal(1.1)
+                if user_progress.upgrades >= user_target.upgrades:
+                    user_progress.commission = user_progress.commission * Decimal(1.05)
+                if user_progress.unlimited >= user_target.unlimited:
+                    user_progress.commission = user_progress.commission * Decimal(1.15)
+                if user_progress.insurance >= user_target.insurance:
+                    user_progress.commission = user_progress.commission * Decimal(1.1)
         # if sale is being added, add to progress where required
         if sale_func == "add":
             if Products.query.filter_by(id=sale.product_id).first().broadband == "":
@@ -620,24 +651,25 @@ def update_progress(sale_func, sale):
             if sale.insurance != "None":
                 user_progress.insurance += 1
 
-            user_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
+            user_progress.revenue += sale.revenue
             user_progress.commission += sale.commission
-            if user_progress.broadband >= user_target.broadband:
-                user_progress.commission = user_progress.commission * Decimal(1.2)
-            if user_progress.new >= user_target.new:
-                user_progress.commission = user_progress.commission * Decimal(1.1)
-            if user_progress.upgrades >= user_target.upgrades:
-                user_progress.commission = user_progress.commission * Decimal(1.05)
-            if user_progress.unlimited >= user_target.unlimited:
-                user_progress.commission = user_progress.commission * Decimal(1.15)
-            if user_progress.insurance >= user_target.insurance:
-                user_progress.commission = user_progress.commission * Decimal(1.1)
+            if user_target:
+                if user_progress.broadband >= user_target.broadband:
+                    user_progress.commission = user_progress.commission * Decimal(1.2)
+                if user_progress.new >= user_target.new:
+                    user_progress.commission = user_progress.commission * Decimal(1.1)
+                if user_progress.upgrades >= user_target.upgrades:
+                    user_progress.commission = user_progress.commission * Decimal(1.05)
+                if user_progress.unlimited >= user_target.unlimited:
+                    user_progress.commission = user_progress.commission * Decimal(1.15)
+                if user_progress.insurance >= user_target.insurance:
+                    user_progress.commission = user_progress.commission * Decimal(1.1)
         db.session.commit()
 
     # if no target add new store progress from first sale
     if StoreProgress.query.filter_by(store_id=Users.query.filter_by(id=sale.user).first().store_id).first() is None:
         new_store_progress = StoreProgress(Users.query.filter_by(id=sale.user).first().store_id, new, upgrades, broadband, unlimited, insurance,
-                                revenue=Products.query.filter_by(id=sale.product_id).first().revenue)
+                                revenue=sale.revenue)
         db.session.add(new_store_progress)
         db.session.commit()
     # if target then sum columns in progress table and update store progress
@@ -657,7 +689,7 @@ def update_progress(sale_func, sale):
                 update_store_progress.unlimited -= 1
             if sale.insurance != "None":
                 update_store_progress.insurance -= 1
-            update_store_progress.revenue -= Products.query.filter_by(id=sale.product_id).first().revenue
+            update_store_progress.revenue -= sale.revenue
         if sale_func == "add":
             if Products.query.filter_by(id=sale.product_id).first().broadband == "":
                 if sale.new:
@@ -674,7 +706,7 @@ def update_progress(sale_func, sale):
             if sale.insurance != "None":
                 update_store_progress.insurance += 1
 
-            update_store_progress.revenue += Products.query.filter_by(id=sale.product_id).first().revenue
+            update_store_progress.revenue += sale.revenue
 
         db.session.commit()
 

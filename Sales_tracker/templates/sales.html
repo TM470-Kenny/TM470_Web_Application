@@ -270,7 +270,7 @@
 								{% endif %}
 							  <td>{{ sale.product.length }} months</td>
 							  <td>£{{ sale.product.price|round(2) }}</td>
-							  <td>£{{ sale.product.revenue|round(2) }}</td>
+							  <td>£{{ sale.revenue|round(2) }}</td>
 							  <td>{{ sale.discount }}&#37;</td>
 							  	{% if sale.product.device == "" %}
 									<td>-</td>
