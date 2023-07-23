@@ -1,4 +1,4 @@
-from main import app
+from application import app
 from db import db
 
 app.app_context().push()

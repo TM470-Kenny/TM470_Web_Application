@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash
 
-from main import app
+from application import app
 from db import db
 from models.products import Products
 from models.targets import StoreTargets, Targets, Progress

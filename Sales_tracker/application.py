@@ -27,7 +27,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 # connect flask app to database
 # set up database location
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myadmin:Myadmin1995!@aws-sales.cd2zzgapclm5.eu-north-1.rds.amazonaws.com/salestracker'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myadmin:Myadmin1995!@aws-sales.cd2zzgapclm5.eu-north-1.rds.amazonaws.com:3306/salestracker'
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 
 
@@ -710,5 +710,5 @@ def update_progress(sale_func, sale):
 
 if __name__ == '__main__':
     db.init_app(app)
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0')
 
