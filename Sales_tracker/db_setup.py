@@ -12,23 +12,23 @@ db.init_app(app)
 # creates all tables from models
 db.create_all()
 
-iphone = Products('iPhone 13', "", 20, 24, 59.99, 250, 2)
-samsung = Products('Samsung A53', "", 100, 24, 25.00, 200, 2)
-samsung1 = Products('Samsung S22', "", 999, 36, 65, 300, 2)
-iphone1 = Products('iPhone 13', "", 999, 24, 89, 310, 3)
-moto = Products('Moto G50', "", 2, 24, 18.00, 80, 2)
-bb = Products('', "Superfast 1", None, 24, 18.00, 80, 2)
-sim = Products('', "", 1, 24, 11.00, 80, 2)
-db.session.add_all([iphone, samsung, samsung1, iphone1, moto, bb, sim])
-#
-db.session.commit()
+# iphone = Products('iPhone 13', "", 20, 24, 59.99, 250, 2)
+# samsung = Products('Samsung A53', "", 100, 24, 25.00, 200, 2)
+# samsung1 = Products('Samsung S22', "", 999, 36, 65, 300, 2)
+# iphone1 = Products('iPhone 13', "", 999, 24, 89, 310, 3)
+# moto = Products('Moto G50', "", 2, 24, 18.00, 80, 2)
+# bb = Products('', "Superfast 1", None, 24, 18.00, 80, 2)
+# sim = Products('', "", 1, 24, 11.00, 80, 2)
+# db.session.add_all([iphone, samsung, samsung1, iphone1, moto, bb, sim])
+# #
+# db.session.commit()
 
 
-user1 = Users("kennyh", "Kenny", "Harvey", generate_password_hash("Password"), "kenny@gmail.com", True, 1, 0)
-user2 = Users("alonal", "Alona", "Lonsdale", generate_password_hash("Password1"), "alona@gmail.com", False, 1, 0)
-user3 = Users("johnl", "John", "Love", generate_password_hash("Password"), "aa@gmail.com", True, 2, 0)
+user1 = Users("guestadmin2", "Admin", "Guest", generate_password_hash("Password"), "admin2@mail.com", True, 2, 0)
+user2 = Users("guestuser2", "User", "Guest", generate_password_hash("Password"), "user2@mail.com", False, 2, 0)
+# user3 = Users("johnl", "John", "Love", generate_password_hash("Password"), "aa@gmail.com", True, 2, 0)
 #
-db.session.add_all([user2, user1, user3])
+db.session.add_all([user2, user1])
 #
 db.session.commit()
 

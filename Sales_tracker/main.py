@@ -10,6 +10,7 @@ import secrets
 import string
 from werkzeug.security import generate_password_hash
 from decimal import Decimal
+import pymysql
 
 from models.products import Products
 from models.sales import Sales
@@ -26,7 +27,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 # connect flask app to database
 # set up database location
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir, 'sales_tracker.sqlite')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myadmin:Myadmin1995!@aws-sales.cd2zzgapclm5.eu-north-1.rds.amazonaws.com/salestracker'
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 
 
@@ -355,7 +356,6 @@ def calc_targets():
                 else:
                     # add results to new target entry
                     new_target = Targets(store.id, user.id, new, upgrades, broadband, unlimited, insurance, revenue)
-                    print(new_target)
                     db.session.add(new_target)
                     db.session.commit()
 
@@ -386,8 +386,6 @@ def sales():
         return render_template("sales.html", sales_form=sales_form, all_sales=all_sales)
     sales_form.validate()
 
-    print(sales_form.data_amount.errors)
-    print(sales_form.data_amount.data)
 
     if sales_form.validate_on_submit():
         username = sales_form.username.data
