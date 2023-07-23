@@ -8,11 +8,11 @@ class Users(UserMixin, db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.Text, nullable=False, unique=True)
+    username = db.Column(db.VARCHAR(20), nullable=False, unique=True)
     firstname = db.Column(db.Text, nullable=False)
     lastname = db.Column(db.Text, nullable=False)
     password = db.Column(db.Text, nullable=False)
-    email = db.Column(db.Text, nullable=False, unique=True)
+    email = db.Column(db.VARCHAR(40), nullable=False, unique=True)
     admin = db.Column(db.Boolean, nullable=False)
     store_id = db.Column(db.Integer)
     hours_working = db.Column(db.Integer)
