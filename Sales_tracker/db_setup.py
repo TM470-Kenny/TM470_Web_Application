@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash
 
-from application import app
+from app import app
 from db import db
 from models.products import Products
 from models.targets import StoreTargets, Targets, Progress
@@ -24,8 +24,8 @@ db.create_all()
 # db.session.commit()
 
 
-user1 = Users("guestadmin2", "Admin", "Guest", generate_password_hash("Password"), "admin2@mail.com", True, 2, 0)
-user2 = Users("guestuser2", "User", "Guest", generate_password_hash("Password"), "user2@mail.com", False, 2, 0)
+user1 = Users("guestadmin", "Admin", "Guest", generate_password_hash("Password"), "admin@mail.com", True, 2, 0)
+user2 = Users("guestuser", "User", "Guest", generate_password_hash("Password"), "user@mail.com", False, 2, 0)
 # user3 = Users("johnl", "John", "Love", generate_password_hash("Password"), "aa@gmail.com", True, 2, 0)
 #
 db.session.add_all([user2, user1])
