@@ -9,6 +9,10 @@ on:
     branches:
       - feature
   workflow_dispatch:
+  
+env:
+  AZURE_WEBAPP_NAME: salestrackerapp
+  AZURE_WEBAPP_PACKAGE_PATH: 'Sales_tracker/app.py'
 
 jobs:
   build:
@@ -58,6 +62,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
-          app-name: 'salestrackerapp'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C92772ED0CAF419D87782DAEF9E4F070 }}
+          publish-profile: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
