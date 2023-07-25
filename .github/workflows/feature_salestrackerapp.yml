@@ -9,10 +9,14 @@ on:
     branches:
       - feature
   workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./Sales_tracker
   
 env:
   AZURE_WEBAPP_NAME: salestrackerapp
-  AZURE_WEBAPP_PACKAGE_PATH: 'Sales_tracker/app.py'
+  AZURE_WEBAPP_PACKAGE_PATH: '../Sales_tracker'
 
 jobs:
   build:
