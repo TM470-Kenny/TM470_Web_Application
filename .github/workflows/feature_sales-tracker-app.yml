@@ -71,7 +71,7 @@ jobs:
           
       - name: Configure deployment and runtime settings on the webapp
         run: |
-          az webapp config set --name ${{ env.WEBAPP_NAME }} \
+          az webapp config set --name ${{ env.AZURE_WEBAPP_NAME }} \
           --startup-file "gunicorn --bind=0.0.0.0 --timeout 600 app:app"
           
       - name: 'Deploy to Azure Web App'
