@@ -9,6 +9,10 @@ on:
     branches:
       - feature
   workflow_dispatch:
+  
+defaults:
+  run:
+    working-directory: ./Sales_tracker
 
 jobs:
   build:
@@ -60,4 +64,4 @@ jobs:
         with:
           app-name: 'sales-tracker-app'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2DCA318EF2264A28BC4A3BAADB782D7A }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
