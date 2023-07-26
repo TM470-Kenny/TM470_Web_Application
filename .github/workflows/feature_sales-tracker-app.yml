@@ -12,6 +12,7 @@ on:
   
 env:
   AZURE_WEBAPP_NAME: sales-tracker-app
+  RESOURCE_GROUP: sales-tracker-resources
   
 defaults:
   run:
@@ -63,8 +64,14 @@ jobs:
           name: python-app
           path: .
           
+      - name: Log in to Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+          
       - name: Configure deployment and runtime settings on the webapp
         run: |
+          az configure --defaults ${{ env.RESOURCE_GROUP }}
           az webapp config appsettings --name ${{ env.WEBAPP_NAME }} --settings \
           SCM_DO_BUILD_DURING_DEPLOYMENT=true \
           FLASK_ENV=production
