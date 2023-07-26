@@ -58,10 +58,18 @@ jobs:
           name: python-app
           path: .
           
+      - name: Configure deployment and runtime settings on the webapp
+        run: |
+          az webapp config appsettings --name 'sales-tracker-app' --settings \
+          SCM_DO_BUILD_DURING_DEPLOYMENT=true \
+          FLASK_ENV=production
+          az webapp config set --name 'sales-tracker-app' \
+          --startup-file "gunicorn --bind=0.0.0.0 --timeout 600 app:app"
+          
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
           app-name: 'sales-tracker-app'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2DCA318EF2264A28BC4A3BAADB782D7A }}
