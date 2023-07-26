@@ -10,6 +10,9 @@ on:
       - feature
   workflow_dispatch:
   
+env:
+  AZURE_WEBAPP_NAME: sales-tracker-app
+  
 defaults:
   run:
     working-directory: ./Sales_tracker
@@ -32,7 +35,9 @@ jobs:
           source venv/bin/activate
       
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: 
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
       
@@ -60,16 +65,16 @@ jobs:
           
       - name: Configure deployment and runtime settings on the webapp
         run: |
-          az webapp config appsettings --name 'sales-tracker-app' --settings \
+          az webapp config appsettings --name ${{ env.WEBAPP_NAME }} --settings \
           SCM_DO_BUILD_DURING_DEPLOYMENT=true \
           FLASK_ENV=production
-          az webapp config set --name 'sales-tracker-app' \
+          az webapp config set --name ${{ env.WEBAPP_NAME }} \
           --startup-file "gunicorn --bind=0.0.0.0 --timeout 600 app:app"
           
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
-          app-name: 'sales-tracker-app'
+          app-name: ${{ env.WEBAPP_NAME }}
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2DCA318EF2264A28BC4A3BAADB782D7A }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
