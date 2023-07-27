@@ -32,6 +32,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 
 # instantiate bootstrap to be used with form
 bootstrap = Bootstrap5(app)
+db.init_app(app)
 
 # instantiate the login manager
 lm = LoginManager()
@@ -708,6 +709,5 @@ def update_progress(sale_func, sale):
         db.session.commit()
 
 if __name__ == '__main__':
-    db.init_app(app)
-    app.run()
+    app.run(host='127.0.0.1', port=8080, debug=True)
 
