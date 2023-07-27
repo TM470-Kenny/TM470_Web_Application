@@ -13,10 +13,6 @@ on:
 env:
   AZURE_WEBAPP_NAME: sales-tracker-app
   RESOURCE_GROUP: sales-tracker-resources
-  
-defaults:
-  run:
-    working-directory: ./Sales_tracker
 
 jobs:
   build:
@@ -38,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: 
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r ./Sales_tracker/requirements.txt
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
       
