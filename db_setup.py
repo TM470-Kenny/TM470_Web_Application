@@ -8,7 +8,7 @@ from models.users import Users
 from models.sales import Sales
 
 app.app_context().push()
-db.init_app(app)
+# db.init_app(app)
 # creates all tables from models
 db.create_all()
 
@@ -24,8 +24,8 @@ db.create_all()
 # db.session.commit()
 
 
-user1 = Users("guestadmin", "Admin", "Guest", generate_password_hash("Password"), "admin@mail.com", True, 2, 0)
-user2 = Users("guestuser", "User", "Guest", generate_password_hash("Password"), "user@mail.com", False, 2, 0)
+user1 = Users("guestadmin", "Admin", "Guest", generate_password_hash("Password"), "admin@mail.com", True, 1, 0)
+user2 = Users("guestuser", "User", "Guest", generate_password_hash("Password"), "user@mail.com", False, 1, 0)
 # user3 = Users("johnl", "John", "Love", generate_password_hash("Password"), "aa@gmail.com", True, 2, 0)
 #
 db.session.add_all([user2, user1])
