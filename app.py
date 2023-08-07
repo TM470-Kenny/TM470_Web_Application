@@ -16,6 +16,13 @@ from models.sales import Sales
 from models.targets import StoreTargets, Targets, Progress, StoreProgress
 from models.users import Users
 
+import urllib.parse
+import pyodbc
+from flask_sqlalchemy import SQLAlchemy
+
+# Azure SQL Database connection
+params = urllib.parse.quote_plus("Driver={ODBC Driver 17 for SQL Server};Server=tcp:sales-tracker-db.database.windows.net,1433;Database=sales-tracker;Uid=CloudSA269aee3b;Pwd=Database2023!;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")
+
 # instantiate the Flask object
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hard to guess string'
@@ -26,7 +33,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 # connect flask app to database
 # set up database location
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir, 'sales_tracker.sqlite')
+app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc:///?autocommit=true&odbc_connect=%s" % params
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
 
 
